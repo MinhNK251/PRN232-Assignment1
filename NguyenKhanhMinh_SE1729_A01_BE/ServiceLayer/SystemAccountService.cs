@@ -6,10 +6,12 @@ namespace ServiceLayer
     public class SystemAccountService : ISystemAccountService
     {
         private readonly ISystemAccountRepo _repo;
+        private readonly INewsArticleRepo _newsRepo;
 
-        public SystemAccountService(ISystemAccountRepo repo)
+        public SystemAccountService(ISystemAccountRepo repo, INewsArticleRepo newsRepo)
         {
             _repo = repo;
+            _newsRepo = newsRepo;
         }
 
         public void AddAccount(SystemAccount account)
@@ -34,6 +36,13 @@ namespace ServiceLayer
 
         public void RemoveAccount(short accountId)
         {
+            var articles = _newsRepo.GetNewsArticlesByCreatedBy(accountId);
+
+            if (articles != null && articles.Count > 0)
+            {
+                throw new InvalidOperationException("This account has created news articles.");
+            }
+
             _repo.RemoveAccount(accountId);
         }
 

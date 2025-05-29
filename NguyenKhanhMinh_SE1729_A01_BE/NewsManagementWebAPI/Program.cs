@@ -15,6 +15,8 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSingleton<ISystemAccountRepo, SystemAccountRepo>();
 builder.Services.AddSingleton<ISystemAccountService, SystemAccountService>();
 
+builder.Services.AddSingleton<INewsArticleRepo, NewsArticleRepo>();
+
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
