@@ -1,8 +1,5 @@
-﻿using BusinessObjectsLayer.Models;
+﻿using BusinessObjectsLayer.Entity;
 using DAOsLayer;
-using Microsoft.Extensions.Options;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace RepositoriesLayer
 {

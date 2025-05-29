@@ -12,10 +12,16 @@ builder.Services.AddControllers().AddJsonOptions(options =>
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 
+// -- SystemAccount
 builder.Services.AddSingleton<ISystemAccountRepo, SystemAccountRepo>();
 builder.Services.AddSingleton<ISystemAccountService, SystemAccountService>();
 
+// -- NewsArticle
 builder.Services.AddSingleton<INewsArticleRepo, NewsArticleRepo>();
+
+// -- Category
+builder.Services.AddSingleton<ICategoryRepo, CategoryRepo>();
+builder.Services.AddSingleton<ICategoryS>
 
 builder.Services.AddSwaggerGen();
 

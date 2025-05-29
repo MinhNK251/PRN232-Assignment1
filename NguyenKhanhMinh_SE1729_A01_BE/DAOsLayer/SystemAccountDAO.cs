@@ -1,5 +1,4 @@
-﻿using BusinessObjectsLayer.Models;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
@@ -9,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace DAOsLayer
 {
-    using BusinessObjectsLayer.Models;
+    using BusinessObjectsLayer.Entity;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Options;
     using System.Linq;

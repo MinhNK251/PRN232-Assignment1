@@ -1,4 +1,4 @@
-﻿using BusinessObjectsLayer.Models;
+﻿using BusinessObjectsLayer.Entity;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;

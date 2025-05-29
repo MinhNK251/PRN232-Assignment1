@@ -1,4 +1,4 @@
-﻿using BusinessObjectsLayer.Models;
+﻿using BusinessObjectsLayer.Entity;
 using DAOsLayer;
 using System;
 using System.Collections.Generic;
@@ -30,7 +30,14 @@ namespace RepositoriesLayer
             => NewsArticleDAO.Instance.UpdateNewsArticle(articleId, updatedArticle);
 
         public void RemoveNewsArticle(string articleId)
-            => NewsArticleDAO.Instance.RemoveNewsArticle(articleId);
+        {
+            var art = NewsArticleDAO.Instance.GetNewsArticleById(articleId);
+            if (art != null && art.NewsStatus == true)
+            {
+                art.NewsStatus = false;
+                NewsArticleDAO.Instance.UpdateNewsArticle(articleId, art);
+            }
+        }
 
         public void RemoveTagsByArticleId(string articleId)
             => NewsArticleDAO.Instance.RemoveTagsByArticleId(articleId);

@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using BusinessObjectsLayer.Models;
+using BusinessObjectsLayer.Entity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 

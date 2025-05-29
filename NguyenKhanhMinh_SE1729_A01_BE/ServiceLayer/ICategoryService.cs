@@ -1,10 +1,8 @@
 ﻿using BusinessObjectsLayer.Entity;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
-namespace RepositoriesLayer
+namespace ServiceLayer
 {
-    public interface ICategoryRepo
+    public interface ICategoryService
     {
         Category? GetCategoryById(short categoryId);
         List<Category> GetCategories();

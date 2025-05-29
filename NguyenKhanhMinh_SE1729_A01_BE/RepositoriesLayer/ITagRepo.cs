@@ -1,6 +1,4 @@
-﻿using BusinessObjectsLayer.Models;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using BusinessObjectsLayer.Entity;
 
 namespace RepositoriesLayer
 {

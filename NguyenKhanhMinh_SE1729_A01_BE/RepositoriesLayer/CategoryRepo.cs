@@ -1,4 +1,4 @@
-﻿using BusinessObjectsLayer.Models;
+﻿using BusinessObjectsLayer.Entity;
 using DAOsLayer;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -23,6 +23,13 @@ namespace RepositoriesLayer
             => CategoryDAO.Instance.UpdateCategory(categoryId, category);
 
         public void RemoveCategory(short categoryId)
-            => CategoryDAO.Instance.RemoveCategory(categoryId);
+        {
+            var cat = CategoryDAO.Instance.GetCategoryById(categoryId);
+            if (cat != null && cat.IsActive == true)
+            {
+                cat.IsActive = false;
+                CategoryDAO.Instance.UpdateCategory(categoryId, cat);
+            }
+        }
     }
 }

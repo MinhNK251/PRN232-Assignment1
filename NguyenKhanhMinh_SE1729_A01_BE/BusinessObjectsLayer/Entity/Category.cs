@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace BusinessObjectsLayer.Models;
+﻿namespace BusinessObjectsLayer.Entity;
 
 public partial class Category
 {

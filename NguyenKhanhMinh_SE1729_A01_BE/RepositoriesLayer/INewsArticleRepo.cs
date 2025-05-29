@@ -1,4 +1,4 @@
-﻿using BusinessObjectsLayer.Models;
+﻿using BusinessObjectsLayer.Entity;
 
 namespace RepositoriesLayer
 {

@@ -1,4 +1,4 @@
-﻿using BusinessObjectsLayer.Models;
+﻿using BusinessObjectsLayer.Entity;
 using RepositoriesLayer;
 
 namespace ServiceLayer
@@ -16,7 +16,14 @@ namespace ServiceLayer
 
         public void AddAccount(SystemAccount account)
         {
+            //var ac = SystemAccountReq.toSystemAccount(account);
             _repo.AddAccount(account);
+        }
+
+        public void UpdateAccount(SystemAccount updatedAccount)
+        {
+            //var ac = SystemAccountReq.toSystemAccount(updatedAccount);
+            _repo.UpdateAccount(updatedAccount);
         }
 
         public SystemAccount? GetAccountByEmail(string email)
@@ -44,11 +51,6 @@ namespace ServiceLayer
             }
 
             _repo.RemoveAccount(accountId);
-        }
-
-        public void UpdateAccount(SystemAccount updatedAccount)
-        {
-            _repo.UpdateAccount(updatedAccount);
         }
     }
 }

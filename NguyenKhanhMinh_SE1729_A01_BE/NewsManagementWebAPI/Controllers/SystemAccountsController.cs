@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using BusinessObjectsLayer.Models;
 using ServiceLayer;
-using System.Collections.Generic;
+using BusinessObjectsLayer.Entity;
 
 namespace NewsManagementWebAPI.Controllers
 {
