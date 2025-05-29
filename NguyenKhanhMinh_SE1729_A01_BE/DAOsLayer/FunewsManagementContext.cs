@@ -40,7 +40,7 @@ public partial class FunewsManagementContext : DbContext
             .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
             .Build();
 
-        var connectionString = config.GetConnectionString("DefaultConnectionStringDB");
+        var connectionString = config.GetConnectionString("DefaultConnectionString");
         return connectionString;
     }
 
