@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using BusinessObjectsLayer.Models;
+using BusinessObjectsLayer.Entity;
 using RepositoriesLayer;
 using Microsoft.AspNetCore.SignalR;
 

@@ -3,31 +3,29 @@
     const userRole = $("#userRole").val();
 
     $.ajax({
-        url: `/NewsArticlePages/Index?handler=LoadData&searchTitle=${searchTitle}`,
+        url: `http://localhost:5271/api/NewsArticles?searchTitle=${searchTitle}`,
         method: 'GET',
         success: (result) => {
-            const articles = result.articles.$values; // Access the array of articles
+            const articles = result.$values || result; // Adjust based on your API response format
             let tr = "";
 
             $.each(articles, (index, article) => {
-                // Ensure category is available
-                const categoryName = article.Category ? article.Category.CategoryName : "No Category";
-
-                // Ensure tags are available
-                let tagsHtml = "<p>No Tag available</p>";
-                if (article.Tags && article.Tags.$values && article.Tags.$values.length > 0) {
-                    tagsHtml = "<ul>";
-                    article.Tags.$values.forEach(tag => {
-                        if (tag && tag.TagName) {
-                            tagsHtml += `<li>${tag.TagName}</li>`;
-                        }
-                    });
-                    tagsHtml += "</ul>";
+                // Extract category name
+                const categoryName = article.Category ? article.Category.CategoryName : "N/A";
+                
+                // Extract tags
+                let tagsHtml = "";
+                if (article.Tags && article.Tags.$values) {
+                    const tags = article.Tags.$values;
+                    for (let i = 0; i < tags.length; i++) {
+                        tagsHtml += tags[i].TagName;
+                        if (i < tags.length - 1) tagsHtml += ", ";
+                    }
                 }
-
-                // Ensure createdBy and updatedBy accounts exist
-                const createdBy = article.CreatedBy ? article.CreatedBy.AccountName : "Unknown";
-                const updatedBy = article.UpdatedBy ? article.UpdatedBy.AccountName : "Unknown";
+                
+                // Extract created by and updated by
+                const createdBy = article.CreatedBy ? article.CreatedBy.FullName : "N/A";
+                const updatedBy = article.UpdatedBy ? article.UpdatedBy.FullName : "N/A";
 
                 // Build the table row
                 tr += `<tr>

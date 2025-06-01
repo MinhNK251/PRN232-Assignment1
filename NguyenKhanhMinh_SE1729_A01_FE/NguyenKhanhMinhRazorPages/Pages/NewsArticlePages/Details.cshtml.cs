@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using BusinessObjectsLayer.Models;
+using BusinessObjectsLayer.Entity;
 using RepositoriesLayer;
 
 namespace NguyenKhanhMinhRazorPages.Pages.NewsArticlePages

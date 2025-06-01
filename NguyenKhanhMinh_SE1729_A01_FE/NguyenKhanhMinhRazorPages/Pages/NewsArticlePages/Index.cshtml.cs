@@ -4,60 +4,61 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.EntityFrameworkCore;
-using BusinessObjectsLayer.Models;
-using DAOsLayer;
-using RepositoriesLayer;
-using Microsoft.AspNetCore.SignalR;
-using System.Text.Json.Serialization;
+using BusinessObjectsLayer.Entity;
 using System.Text.Json;
+using System.Text.Json.Serialization;
+using NguyenKhanhMinhRazorPages.Services;
 
 namespace NguyenKhanhMinhRazorPages.Pages.NewsArticlePages
 {
     public class IndexModel : PageModel
     {
-        private readonly INewsArticleRepo _newsArticleRepo;
-        private readonly ISystemAccountRepo _systemAccountRepo;
+        private readonly ApiClient _apiClient;
 
-        public IndexModel(INewsArticleRepo newsArticleRepo, ISystemAccountRepo systemAccountRepo)
+        public IndexModel(ApiClient apiClient)
         {
-            _newsArticleRepo = newsArticleRepo;
-            _systemAccountRepo = systemAccountRepo;
+            _apiClient = apiClient;
         }
 
-        public IList<NewsArticle> NewsArticle { get;set; } = default!;
+        public IList<NewsArticle> NewsArticle { get; set; } = new List<NewsArticle>();
+        
         [BindProperty(SupportsGet = true)]
-        public string? SearchTitle { get; set; }
+        public string SearchTitle { get; set; }
 
-        public async Task<IActionResult> OnGetAsync()
+        public IActionResult OnGet()
         {
-            var userRole = HttpContext.Session.GetString("UserRole");
-            var articles = string.IsNullOrEmpty(userRole) || userRole.Equals("2")
-                ? _newsArticleRepo.GetActiveNewsArticles()
-                : _newsArticleRepo.GetNewsArticles();
-            NewsArticle = articles;
+            // Check authentication
+            var userEmail = HttpContext.Session.GetString("UserEmail");
+            if (string.IsNullOrEmpty(userEmail))
+            {
+                return RedirectToPage("/Login");
+            }
+
             return Page();
         }
 
-        public JsonResult OnGetLoadData(string? searchTitle)
+        public async Task<JsonResult> OnGetLoadData(string? searchTitle)
         {
-            var userRole = HttpContext.Session.GetString("UserRole");
-            var articles = string.IsNullOrEmpty(userRole) || userRole.Equals("2")
-                ? _newsArticleRepo.GetActiveNewsArticles()
-                : _newsArticleRepo.GetNewsArticles();
-            if (!string.IsNullOrEmpty(searchTitle))
+            try
             {
-                articles = articles.Where(a => a.NewsTitle != null &&
-                                a.NewsTitle.Contains(searchTitle, StringComparison.CurrentCultureIgnoreCase))
-                    .ToList();
-            }
-            var options = new JsonSerializerOptions
-            {
-                ReferenceHandler = ReferenceHandler.Preserve, // Handle circular references
-                WriteIndented = true // Optional: Makes the JSON output more readable
-            };
+                var endpoint = string.IsNullOrEmpty(searchTitle) 
+                    ? "api/NewsArticles" 
+                    : $"api/NewsArticles?searchTitle={searchTitle}";
+                
+                var articles = await _apiClient.GetAsync<List<NewsArticle>>(endpoint);
+                
+                var options = new JsonSerializerOptions
+                {
+                    ReferenceHandler = ReferenceHandler.Preserve,
+                    WriteIndented = true
+                };
 
-            return new JsonResult(new { articles }, options);
+                return new JsonResult(new { articles }, options);
+            }
+            catch (Exception ex)
+            {
+                return new JsonResult(new { error = ex.Message });
+            }
         }
     }
 }

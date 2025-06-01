@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using BusinessObjectsLayer.Models;
+using BusinessObjectsLayer.Entity;
 using DAOsLayer;
 using RepositoriesLayer;
 using Microsoft.AspNetCore.SignalR;

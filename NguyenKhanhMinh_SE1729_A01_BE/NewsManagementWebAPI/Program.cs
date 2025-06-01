@@ -12,6 +12,17 @@ builder.Services.AddControllers().AddJsonOptions(options =>
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 
+// Add CORS policy
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.WithOrigins("http://localhost:5153") // FE application URL
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
+
 // -- SystemAccount
 builder.Services.AddSingleton<ISystemAccountRepo, SystemAccountRepo>();
 builder.Services.AddSingleton<ISystemAccountService, SystemAccountService>();
@@ -38,6 +49,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseCors("AllowFrontend");
 
 app.UseAuthorization();
 
