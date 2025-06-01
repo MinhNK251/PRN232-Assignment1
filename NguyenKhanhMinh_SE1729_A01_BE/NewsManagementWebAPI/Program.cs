@@ -13,16 +13,16 @@ builder.Services.AddControllers().AddJsonOptions(options =>
 builder.Services.AddEndpointsApiExplorer();
 
 // -- SystemAccount
-builder.Services.AddSingleton<ISystemAccountRepo, SystemAccountRepo>();
-builder.Services.AddSingleton<ISystemAccountService, SystemAccountService>();
+builder.Services.AddScoped<ISystemAccountRepo, SystemAccountRepo>();
+builder.Services.AddScoped<ISystemAccountService, SystemAccountService>();
 
 // -- NewsArticle
-builder.Services.AddSingleton<INewsArticleRepo, NewsArticleRepo>();
-builder.Services.AddSingleton<INewsArticleService, NewsArticleService>();
+builder.Services.AddScoped<INewsArticleRepo, NewsArticleRepo>();
+builder.Services.AddScoped<INewsArticleService, NewsArticleService>();
 
 // -- Category
-builder.Services.AddSingleton<ICategoryRepo, CategoryRepo>();
-builder.Services.AddSingleton<ICategoryService, CategoryService>();
+builder.Services.AddScoped<ICategoryRepo, CategoryRepo>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
 
 builder.Services.AddSwaggerGen();
 

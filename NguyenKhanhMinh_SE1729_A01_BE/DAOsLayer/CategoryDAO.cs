@@ -90,10 +90,10 @@ namespace DAOsLayer
         {
             using (var dbContext = CreateDbContext())
             {
-                var existingCategory = GetCategoryById(categoryId);
+                var existingCategory = dbContext.Categories.Find(categoryId);
                 if (existingCategory != null)
                 {
-                    dbContext.Categories.Update(updatedCategory);
+                    dbContext.Entry(existingCategory).CurrentValues.SetValues(updatedCategory);
                     dbContext.SaveChanges();
                 }
             }

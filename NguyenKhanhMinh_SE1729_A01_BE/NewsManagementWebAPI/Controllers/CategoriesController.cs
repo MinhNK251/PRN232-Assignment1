@@ -40,11 +40,6 @@ namespace NewsManagementWebAPI.Controllers
         [HttpPut("{id}")]
         public IActionResult PutCategory(short id, Category category)
         {
-            if (id != category.CategoryId)
-            {
-                return BadRequest();
-            }
-
             try
             {
                 _service.UpdateCategory(id, category);

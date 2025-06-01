@@ -131,10 +131,10 @@ namespace DAOsLayer
         {
             using (var dbContext = CreateDbContext())
             {
-                var existingNewsArticle = GetNewsArticleById(newsArticleId);
+                var existingNewsArticle = dbContext.NewsArticles.Find(newsArticleId);
                 if (existingNewsArticle != null)
                 {
-                    dbContext.NewsArticles.Update(updatedNewsArticle);
+                    dbContext.Entry(existingNewsArticle).CurrentValues.SetValues(updatedNewsArticle);
                     dbContext.SaveChanges();
                 }
             }
