@@ -9,16 +9,17 @@ using Microsoft.EntityFrameworkCore;
 using BusinessObjectsLayer.Entity;
 using DAOsLayer;
 using RepositoriesLayer;
+using NguyenKhanhMinhRazorPages.Services;
 
 namespace NguyenKhanhMinhRazorPages.Pages.CategoryPages
 {
     public class EditModel : PageModel
     {
-        private readonly ICategoryRepo _categoryRepo;
+        private readonly ApiClient _apiClient;
 
-        public EditModel(ICategoryRepo categoryRepo)
+        public EditModel(ApiClient apiClient)
         {
-            _categoryRepo = categoryRepo;
+            _apiClient = apiClient;
         }
 
         [BindProperty]
@@ -26,46 +27,52 @@ namespace NguyenKhanhMinhRazorPages.Pages.CategoryPages
 
         public async Task<IActionResult> OnGetAsync(short id)
         {
-            if (id == null)
+            try
             {
-                return NotFound();
-            }
+                Category = await _apiClient.GetAsync<Category>($"api/Categories/{id}");
+                if (Category == null)
+                {
+                    return NotFound();
+                }
 
-            var category = _categoryRepo.GetCategoryById(id);
-            if (category == null)
+                var categories = await _apiClient.GetAsync<List<Category>>("api/Categories");
+                ViewData["ParentCategoryId"] = new SelectList(categories, "CategoryId", "CategoryName");
+                return Page();
+            }
+            catch (Exception ex)
             {
                 return NotFound();
             }
-            Category = category;
-            ViewData["ParentCategoryId"] = new SelectList(_categoryRepo.GetCategories(), "CategoryId", "CategoryName");
-            return Page();
         }
 
         public async Task<IActionResult> OnPostAsync()
         {
             if (!ModelState.IsValid)
             {
-                ViewData["ParentCategoryId"] = new SelectList(_categoryRepo.GetCategories(), "CategoryId", "CategoryName");
+                var categories = await _apiClient.GetAsync<List<Category>>("api/Categories");
+                ViewData["ParentCategoryId"] = new SelectList(categories, "CategoryId", "CategoryName");
                 return Page();
             }
 
             try
             {
-                _categoryRepo.UpdateCategory(Category.CategoryId, Category);
+                await _apiClient.PutAsync($"api/Categories/{Category.CategoryId}", Category);
+                return RedirectToPage("./Index");
             }
-            catch (DbUpdateConcurrencyException)
+            catch (Exception ex)
             {
-                if (_categoryRepo.GetCategoryById(Category.CategoryId) == null)
+                if (ex.Message.Contains("404") || ex.Message.Contains("NotFound"))
                 {
                     return NotFound();
                 }
                 else
                 {
-                    throw;
+                    ModelState.AddModelError("", $"Error updating category: {ex.Message}");
+                    var categories = await _apiClient.GetAsync<List<Category>>("api/Categories");
+                    ViewData["ParentCategoryId"] = new SelectList(categories, "CategoryId", "CategoryName");
+                    return Page();
                 }
             }
-
-            return RedirectToPage("./Index");
         }
     }
 }

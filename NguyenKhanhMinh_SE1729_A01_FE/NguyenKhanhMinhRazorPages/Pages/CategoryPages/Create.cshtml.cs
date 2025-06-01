@@ -8,21 +8,24 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using BusinessObjectsLayer.Entity;
 using DAOsLayer;
 using RepositoriesLayer;
+using NguyenKhanhMinhRazorPages.Services;
 
 namespace NguyenKhanhMinhRazorPages.Pages.CategoryPages
 {
     public class CreateModel : PageModel
     {
-        private readonly ICategoryRepo _categoryRepo;
+        private readonly ApiClient _apiClient;
 
-        public CreateModel(ICategoryRepo categoryRepo)
+        public CreateModel(ApiClient apiClient)
         {
-            _categoryRepo = categoryRepo;
+            _apiClient = apiClient;
         }
 
-        public IActionResult OnGet()
+        public async Task<IActionResult> OnGetAsync()
         {
-            ViewData["ParentCategoryId"] = new SelectList(_categoryRepo.GetCategories(), "CategoryId", "CategoryName");
+            // Get categories for dropdown
+            var categories = await _apiClient.GetAsync<List<Category>>("api/Categories");
+            ViewData["ParentCategoryId"] = new SelectList(categories, "CategoryId", "CategoryName");
             return Page();
         }
 
@@ -33,13 +36,23 @@ namespace NguyenKhanhMinhRazorPages.Pages.CategoryPages
         {
             if (!ModelState.IsValid)
             {
-                ViewData["ParentCategoryId"] = new SelectList(_categoryRepo.GetCategories(), "CategoryId", "CategoryName");
+                var categories = await _apiClient.GetAsync<List<Category>>("api/Categories");
+                ViewData["ParentCategoryId"] = new SelectList(categories, "CategoryId", "CategoryName");
                 return Page();
             }
 
-            _categoryRepo.AddCategory(Category);
-
-            return RedirectToPage("./Index");
+            try
+            {
+                await _apiClient.PostAsync<Category>("api/Categories", Category);
+                return RedirectToPage("./Index");
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", $"Error creating category: {ex.Message}");
+                var categories = await _apiClient.GetAsync<List<Category>>("api/Categories");
+                ViewData["ParentCategoryId"] = new SelectList(categories, "CategoryId", "CategoryName");
+                return Page();
+            }
         }
     }
 }

@@ -8,16 +8,17 @@ using Microsoft.EntityFrameworkCore;
 using BusinessObjectsLayer.Entity;
 using DAOsLayer;
 using RepositoriesLayer;
+using NguyenKhanhMinhRazorPages.Services;
 
 namespace NguyenKhanhMinhRazorPages.Pages.CategoryPages
 {
     public class DeleteModel : PageModel
     {
-        private readonly ICategoryRepo _categoryRepo;
+        private readonly ApiClient _apiClient;
 
-        public DeleteModel(ICategoryRepo categoryRepo)
+        public DeleteModel(ApiClient apiClient)
         {
-            _categoryRepo = categoryRepo;
+            _apiClient = apiClient;
         }
 
         [BindProperty]
@@ -25,28 +26,42 @@ namespace NguyenKhanhMinhRazorPages.Pages.CategoryPages
 
         public async Task<IActionResult> OnGetAsync(short id)
         {
-            var category = _categoryRepo.GetCategoryById(id);
-            if (category == null)
+            try
+            {
+                Category = await _apiClient.GetAsync<Category>($"api/Categories/{id}");
+                if (Category == null)
+                {
+                    return NotFound();
+                }
+                return Page();
+            }
+            catch (Exception ex)
             {
                 return NotFound();
             }
-            Category = category;
-            return Page();
         }
 
         public async Task<IActionResult> OnPostAsync(short id)
         {
-            var category = _categoryRepo.GetCategoryById(id);
-            if (category != null)
+            try
             {
-                if (category.NewsArticles.Any())
+                await _apiClient.DeleteAsync($"api/Categories/{id}");
+                return RedirectToPage("./Index");
+            }
+            catch (Exception ex)
+            {
+                if (ex.Message.Contains("404") || ex.Message.Contains("NotFound"))
                 {
-                    TempData["ErrorMessage"] = "Cannot delete this category because it is associated with news articles.";
+                    return NotFound();
+                }
+                else
+                {
+                    // If there's an error (like a constraint violation), redisplay the page with an error
+                    Category = await _apiClient.GetAsync<Category>($"api/Categories/{id}");
+                    ModelState.AddModelError("", $"Error deleting category: {ex.Message}");
                     return Page();
                 }
-                _categoryRepo.RemoveCategory(id);
             }
-            return RedirectToPage("./Index");
         }
     }
 }

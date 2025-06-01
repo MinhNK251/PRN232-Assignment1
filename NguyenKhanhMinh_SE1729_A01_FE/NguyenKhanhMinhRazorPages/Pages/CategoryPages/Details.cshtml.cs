@@ -8,29 +8,36 @@ using Microsoft.EntityFrameworkCore;
 using BusinessObjectsLayer.Entity;
 using DAOsLayer;
 using RepositoriesLayer;
+using NguyenKhanhMinhRazorPages.Services;
 
 namespace NguyenKhanhMinhRazorPages.Pages.CategoryPages
 {
     public class DetailsModel : PageModel
     {
-        private readonly ICategoryRepo _categoryRepo;
+        private readonly ApiClient _apiClient;
 
-        public DetailsModel(ICategoryRepo categoryRepo)
+        public DetailsModel(ApiClient apiClient)
         {
-            _categoryRepo = categoryRepo;
+            _apiClient = apiClient;
         }
 
         public Category Category { get; set; } = default!;
 
         public async Task<IActionResult> OnGetAsync(short id)
         {
-            var category = _categoryRepo.GetCategoryById(id);
-            if (category == null)
+            try
+            {
+                Category = await _apiClient.GetAsync<Category>($"api/Categories/{id}");
+                if (Category == null)
+                {
+                    return NotFound();
+                }
+                return Page();
+            }
+            catch (Exception ex)
             {
                 return NotFound();
             }
-            Category = category;
-            return Page();
         }
     }
 }
