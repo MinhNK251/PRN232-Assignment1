@@ -34,13 +34,11 @@ builder.Services.AddSingleton<ISystemAccountService, SystemAccountService>();
 
 // -- NewsArticle
 builder.Services.AddSingleton<INewsArticleRepo, NewsArticleRepo>();
+builder.Services.AddSingleton<INewsArticleService, NewsArticleService>();
 
 // -- Category
 builder.Services.AddSingleton<ICategoryRepo, CategoryRepo>();
 builder.Services.AddSingleton<ICategoryService, CategoryService>();
-
-builder.Services.AddSingleton<INewsArticleRepo, NewsArticleRepo>();
-builder.Services.AddSingleton<INewsArticleService, NewsArticleService>();
 
 builder.Services.AddSwaggerGen();
 

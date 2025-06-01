@@ -81,10 +81,5 @@ namespace NewsManagementWebAPI.Controllers
             _context.RemoveAccount(id);
             return NoContent();
         }
-
-        private bool SystemAccountExists(short id)
-        {
-            return _context.GetAccountById(id) != null;
-        }
     }
 }
