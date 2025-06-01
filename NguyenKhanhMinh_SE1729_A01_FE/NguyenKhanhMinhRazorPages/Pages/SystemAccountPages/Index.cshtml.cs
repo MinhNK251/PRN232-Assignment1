@@ -8,23 +8,32 @@ using Microsoft.EntityFrameworkCore;
 using BusinessObjectsLayer.Entity;
 using DAOsLayer;
 using RepositoriesLayer;
+using NguyenKhanhMinhRazorPages.Services;
 
 namespace NguyenKhanhMinhRazorPages.Pages.SystemAccountPages
 {
     public class IndexModel : PageModel
     {
-        private readonly ISystemAccountRepo _systemAccountRepo;
+        private readonly ApiClient _apiClient;
 
-        public IndexModel(ISystemAccountRepo systemAccountRepo)
+        public IndexModel(ApiClient apiClient)
         {
-            _systemAccountRepo = systemAccountRepo;
+            _apiClient = apiClient;
         }
 
         public IList<SystemAccount> SystemAccount { get;set; } = default!;
 
         public async Task OnGetAsync()
         {
-            SystemAccount = _systemAccountRepo.GetAccounts();
+            try
+            {
+                SystemAccount = await _apiClient.GetAsync<List<SystemAccount>>("api/SystemAccounts");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error fetching accounts: {ex.Message}");
+                SystemAccount = new List<SystemAccount>();
+            }
         }
     }
 }
