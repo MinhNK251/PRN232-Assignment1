@@ -8,6 +8,7 @@ using BusinessObjectsLayer.Entity;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using NguyenKhanhMinhRazorPages.Services;
+using RepositoriesLayer;
 
 namespace NguyenKhanhMinhRazorPages.Pages.NewsArticlePages
 {
@@ -25,7 +26,7 @@ namespace NguyenKhanhMinhRazorPages.Pages.NewsArticlePages
         [BindProperty(SupportsGet = true)]
         public string SearchTitle { get; set; }
 
-        public IActionResult OnGet()
+        public async Task<IActionResult> OnGetAsync()
         {
             // Check authentication
             var userEmail = HttpContext.Session.GetString("UserEmail");
@@ -34,31 +35,23 @@ namespace NguyenKhanhMinhRazorPages.Pages.NewsArticlePages
                 return RedirectToPage("/Login");
             }
 
-            return Page();
-        }
-
-        public async Task<JsonResult> OnGetLoadData(string? searchTitle)
-        {
             try
             {
-                var endpoint = string.IsNullOrEmpty(searchTitle) 
-                    ? "api/NewsArticles" 
-                    : $"api/NewsArticles?searchTitle={searchTitle}";
+                // Use API client instead of repository
+                var endpoint = string.IsNullOrEmpty(SearchTitle)
+                    ? "api/NewsArticles"
+                    : $"api/NewsArticles?searchTitle={SearchTitle}";
                 
-                var articles = await _apiClient.GetAsync<List<NewsArticle>>(endpoint);
-                
-                var options = new JsonSerializerOptions
-                {
-                    ReferenceHandler = ReferenceHandler.Preserve,
-                    WriteIndented = true
-                };
-
-                return new JsonResult(new { articles }, options);
+                NewsArticle = await _apiClient.GetAsync<List<NewsArticle>>(endpoint);
             }
             catch (Exception ex)
             {
-                return new JsonResult(new { error = ex.Message });
+                // Log the error
+                Console.WriteLine($"Error fetching articles: {ex.Message}");
+                NewsArticle = new List<NewsArticle>();
             }
+
+            return Page();
         }
     }
 }

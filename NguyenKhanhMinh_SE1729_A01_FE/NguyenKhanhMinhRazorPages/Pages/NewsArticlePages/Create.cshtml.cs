@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using BusinessObjectsLayer.Entity;
 using RepositoriesLayer;
 using Microsoft.AspNetCore.SignalR;
+using NguyenKhanhMinhRazorPages.Services;
 
 namespace NguyenKhanhMinhRazorPages.Pages.NewsArticlePages
 {
@@ -18,14 +19,16 @@ namespace NguyenKhanhMinhRazorPages.Pages.NewsArticlePages
         private readonly ISystemAccountRepo _systemAccountRepo;
         private readonly ITagRepo _tagRepo;
         private readonly IHubContext<SignalrServer> _hubContext;
+        private readonly ApiClient _apiClient;
 
-        public CreateModel(INewsArticleRepo newsArticleRepo, ICategoryRepo categoryRepo, ISystemAccountRepo systemAccountRepo, ITagRepo tagRepo, IHubContext<SignalrServer> hubContext)
+        public CreateModel(INewsArticleRepo newsArticleRepo, ICategoryRepo categoryRepo, ISystemAccountRepo systemAccountRepo, ITagRepo tagRepo, IHubContext<SignalrServer> hubContext, ApiClient apiClient)
         {
             _newsArticleRepo = newsArticleRepo;
             _categoryRepo = categoryRepo;
             _systemAccountRepo = systemAccountRepo;
             _tagRepo = tagRepo;
             _hubContext = hubContext;
+            _apiClient = apiClient;
         }
 
         [BindProperty]
@@ -44,39 +47,32 @@ namespace NguyenKhanhMinhRazorPages.Pages.NewsArticlePages
         {
             if (!ModelState.IsValid)
             {
-                ViewData["CategoryId"] = new SelectList(_categoryRepo.GetCategories(), "CategoryId", "CategoryName");
-                ViewData["Tags"] = new MultiSelectList(_tagRepo.GetTags(), "TagId", "TagName");
                 return Page();
             }
-            var existingArticle = _newsArticleRepo.GetNewsArticleById(NewsArticle.NewsArticleId);
-            if (existingArticle != null)
-            {
-                ModelState.AddModelError("NewsArticle.NewsArticleId", "This NewsArticle ID already exists. Please enter a unique ID.");
-                ViewData["CategoryId"] = new SelectList(_categoryRepo.GetCategories(), "CategoryId", "CategoryName");
-                ViewData["Tags"] = new MultiSelectList(_tagRepo.GetTags(), "TagId", "TagName");
-                return Page();
-            }
+
             NewsArticle.CreatedDate = DateTime.Now;
             NewsArticle.ModifiedDate = DateTime.Now;
+            
             var userEmail = HttpContext.Session.GetString("UserEmail");
             if (string.IsNullOrEmpty(userEmail))
             {
                 return RedirectToPage("/Login");
             }
-            SystemAccount account = _systemAccountRepo.GetAccountByEmail(userEmail);
+            
+            // Get account info (you might need to adjust this)
+            var account = await _apiClient.GetAsync<SystemAccount>($"api/SystemAccounts/byEmail/{userEmail}");
+            
             NewsArticle.CreatedById = account.AccountId;
             NewsArticle.UpdatedById = account.AccountId;
-            if (SelectedTags != null && SelectedTags.Any())
-            {
-                var existingTags = _tagRepo.GetTagsByIds(SelectedTags);
-                NewsArticle.Tags = existingTags;
-            }
-            else
-            {
-                NewsArticle.Tags = new List<Tag>();
-            }
-            _newsArticleRepo.AddNewsArticle(NewsArticle);
+            
+            // Handle tags if needed
+            
+            // Use API to create article
+            await _apiClient.PostAsync<NewsArticle>("api/NewsArticles", NewsArticle);
+            
+            // Signal update to other clients
             await _hubContext.Clients.All.SendAsync("LoadData");
+            
             return RedirectToPage("./Index");
         }
     }

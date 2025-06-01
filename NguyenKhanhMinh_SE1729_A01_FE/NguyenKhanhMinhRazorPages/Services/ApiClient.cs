@@ -8,7 +8,7 @@ namespace NguyenKhanhMinhRazorPages.Services
     public class ApiClient
     {
         private readonly HttpClient _httpClient;
-        private readonly string _baseUrl = "http://localhost:7085"; // BE API URL
+        private readonly string _baseUrl = "https://localhost:7085"; // BE API URL
 
         public ApiClient(HttpClient httpClient)
         {

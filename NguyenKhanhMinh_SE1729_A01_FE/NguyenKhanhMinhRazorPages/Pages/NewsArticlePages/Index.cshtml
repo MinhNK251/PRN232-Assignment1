@@ -136,3 +136,81 @@
         }
     </tbody>
 </table>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Check if the table is empty
+            if ($("#tableBody tr").length === 0) {
+                loadArticles();
+            }
+        });
+
+        function loadArticles() {
+            const searchTitle = $("#searchTitle").val();
+            
+            $.ajax({
+                url: '?handler=LoadData',
+                data: { searchTitle: searchTitle },
+                type: 'GET',
+                contentType: 'application/json',
+                success: function (result) {
+                    if (result.articles && result.articles.length > 0) {
+                        populateTable(result.articles);
+                    } else {
+                        $("#tableBody").html("<tr><td colspan='11'>No articles found</td></tr>");
+                    }
+                },
+                error: function (error) {
+                    console.error("Error loading articles:", error);
+                    $("#tableBody").html("<tr><td colspan='11'>Error loading articles</td></tr>");
+                }
+            });
+        }
+
+        function populateTable(articles) {
+            let tableContent = '';
+            const userRole = $("#userRole").val();
+            
+            articles.forEach(function(article) {
+                const categoryName = article.category ? article.category.categoryName : "N/A";
+                const createdBy = article.createdBy ? article.createdBy.accountName : "N/A";
+                const updatedBy = article.updatedBy ? article.updatedBy.accountName : "N/A";
+                
+                let tagsHtml = "";
+                if (article.tags && article.tags.length > 0) {
+                    tagsHtml = "<ul>";
+                    article.tags.forEach(function(tag) {
+                        tagsHtml += `<li>${tag.tagName}</li>`;
+                    });
+                    tagsHtml += "</ul>";
+                } else {
+                    tagsHtml = "<p>No Tag available</p>";
+                }
+                
+                tableContent += `<tr>
+                    <td>${article.newsTitle || "undefined"}</td>
+                    <td>${article.headline || "undefined"}</td>
+                    <td>${categoryName}</td>
+                    <td>${tagsHtml}</td>
+                    <td>${article.newsSource || "undefined"}</td>
+                    <td>${article.newsStatus || "false"}</td>
+                    <td>${article.createdDate || "undefined"}</td>
+                    <td>${article.modifiedDate || "undefined"}</td>
+                    <td>${createdBy}</td>
+                    <td>${updatedBy}</td>
+                    <td>
+                        ${userRole === "1"
+                        ? `<a href="./NewsArticlePages/Edit?id=${article.newsArticleId}">Edit</a> | 
+                           <a href="./NewsArticlePages/Details?id=${article.newsArticleId}">Details</a> | 
+                           <a href="./NewsArticlePages/Delete?id=${article.newsArticleId}">Delete</a>`
+                        : `<a href="./NewsArticlePages/Details?id=${article.newsArticleId}">Details</a>`
+                        }
+                    </td>
+                </tr>`;
+            });
+            
+            $("#tableBody").html(tableContent);
+        }
+    </script>
+}

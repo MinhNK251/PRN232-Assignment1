@@ -10,6 +10,7 @@ using BusinessObjectsLayer.Entity;
 using DAOsLayer;
 using RepositoriesLayer;
 using Microsoft.AspNetCore.SignalR;
+using NguyenKhanhMinhRazorPages.Services;
 
 namespace NguyenKhanhMinhRazorPages.Pages.NewsArticlePages
 {
@@ -20,14 +21,16 @@ namespace NguyenKhanhMinhRazorPages.Pages.NewsArticlePages
         private readonly ISystemAccountRepo _systemAccountRepo;
         private readonly ITagRepo _tagRepo;
         private readonly IHubContext<SignalrServer> _hubContext;
+        private readonly ApiClient _apiClient;
 
-        public EditModel(INewsArticleRepo newsArticleRepo, ICategoryRepo categoryRepo, ISystemAccountRepo systemAccountRepo, ITagRepo tagRepo, IHubContext<SignalrServer> hubContext)
+        public EditModel(INewsArticleRepo newsArticleRepo, ICategoryRepo categoryRepo, ISystemAccountRepo systemAccountRepo, ITagRepo tagRepo, IHubContext<SignalrServer> hubContext, ApiClient apiClient)
         {
             _newsArticleRepo = newsArticleRepo;
             _categoryRepo = categoryRepo;
             _systemAccountRepo = systemAccountRepo;
             _tagRepo = tagRepo;
             _hubContext = hubContext;
+            _apiClient = apiClient;
         }
 
         [BindProperty]
@@ -42,13 +45,14 @@ namespace NguyenKhanhMinhRazorPages.Pages.NewsArticlePages
                 return NotFound();
             }
 
-            var newsArticle =  _newsArticleRepo.GetNewsArticleById(id);
-            if (newsArticle == null)
+            // Use API to get article
+            NewsArticle = await _apiClient.GetAsync<NewsArticle>($"api/NewsArticles/{id}");
+
+            if (NewsArticle == null)
             {
                 return NotFound();
             }
-            NewsArticle = newsArticle;
-            SelectedTags = newsArticle.Tags.Select(t => t.TagId).ToList();
+            SelectedTags = NewsArticle.Tags.Select(t => t.TagId).ToList();
             ViewData["CategoryId"] = new SelectList(_categoryRepo.GetCategories(), "CategoryId", "CategoryName");
             ViewData["Tags"] = new MultiSelectList(_tagRepo.GetTags(), "TagId", "TagName");
             return Page();
@@ -58,49 +62,15 @@ namespace NguyenKhanhMinhRazorPages.Pages.NewsArticlePages
         {
             if (!ModelState.IsValid)
             {
-                ViewData["CategoryId"] = new SelectList(_categoryRepo.GetCategories(), "CategoryId", "CategoryName");
-                ViewData["Tags"] = new MultiSelectList(_tagRepo.GetTags(), "TagId", "TagName");
                 return Page();
             }
 
-            try
-            {
-                // ✅ Avoid reloading NewsArticle
-                var existingArticle = _newsArticleRepo.GetNewsArticleById(NewsArticle.NewsArticleId);
-                if (existingArticle == null)
-                {
-                    return NotFound();
-                }
-                var userEmail = HttpContext.Session.GetString("UserEmail");
-                if (string.IsNullOrEmpty(userEmail))
-                {
-                    return RedirectToPage("/Login"); // Redirect to login if no session exists
-                }
-                var currentUser = _systemAccountRepo.GetAccountByEmail(userEmail);
-                existingArticle.UpdatedBy = currentUser;
-                existingArticle.NewsTitle = NewsArticle.NewsTitle;
-                existingArticle.Headline = NewsArticle.Headline;
-                existingArticle.NewsContent = NewsArticle.NewsContent;
-                existingArticle.NewsSource = NewsArticle.NewsSource;
-                existingArticle.CategoryId = NewsArticle.CategoryId;
-                existingArticle.NewsStatus = NewsArticle.NewsStatus;
-                existingArticle.ModifiedDate = DateTime.Now;
-                _newsArticleRepo.RemoveTagsByArticleId(existingArticle.NewsArticleId);
-                existingArticle.Tags = _tagRepo.GetTagsByIds(SelectedTags);
-                _newsArticleRepo.UpdateNewsArticle(existingArticle.NewsArticleId, existingArticle);
-                await _hubContext.Clients.All.SendAsync("LoadData");
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (_newsArticleRepo.GetNewsArticleById(NewsArticle.NewsArticleId) == null)
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            // Update article via API
+            await _apiClient.PutAsync($"api/NewsArticles/{NewsArticle.NewsArticleId}", NewsArticle);
+            
+            // Signal update to other clients
+            await _hubContext.Clients.All.SendAsync("LoadData");
+            
             return RedirectToPage("./Index");
         }
 
