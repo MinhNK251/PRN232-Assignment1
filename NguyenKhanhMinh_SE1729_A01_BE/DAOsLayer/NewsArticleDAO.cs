@@ -131,10 +131,29 @@ namespace DAOsLayer
         {
             using (var dbContext = CreateDbContext())
             {
-                var existingNewsArticle = dbContext.NewsArticles.Find(newsArticleId);
+                var existingNewsArticle = dbContext.NewsArticles
+                    .Include(na => na.Tags)
+                    .FirstOrDefault(na => na.NewsArticleId == newsArticleId);
+
                 if (existingNewsArticle != null)
                 {
                     dbContext.Entry(existingNewsArticle).CurrentValues.SetValues(updatedNewsArticle);
+
+                    existingNewsArticle.Tags.Clear();
+
+                    foreach (var tag in updatedNewsArticle.Tags)
+                    {
+                        var existingTag = dbContext.Tags.FirstOrDefault(t => t.TagId == tag.TagId);
+                        if (existingTag != null)
+                        {
+                            existingNewsArticle.Tags.Add(existingTag);
+                        }
+                        else
+                        {
+                            existingNewsArticle.Tags.Add(tag);
+                        }
+                    }
+
                     dbContext.SaveChanges();
                 }
             }
