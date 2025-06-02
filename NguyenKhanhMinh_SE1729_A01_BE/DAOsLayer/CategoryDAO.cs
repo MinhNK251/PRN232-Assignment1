@@ -44,7 +44,7 @@ namespace DAOsLayer
                     .Include(c => c.ParentCategory)
                     .Include(c => c.InverseParentCategory)
                     .Include(c => c.NewsArticles)
-                    .SingleOrDefault(c => c.CategoryId == categoryId);
+                    .SingleOrDefault(c => c.CategoryId == categoryId && c.IsActive == true);
             }
         }
 
@@ -54,6 +54,7 @@ namespace DAOsLayer
             using (var dbContext = CreateDbContext())
             {
                 return dbContext.Categories.AsNoTracking()
+                    .Where(c => c.IsActive == true)
                     .Include(c => c.ParentCategory)
                     .Include(c => c.InverseParentCategory)
                     .Include(c => c.NewsArticles)
