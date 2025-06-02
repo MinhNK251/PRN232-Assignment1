@@ -86,16 +86,12 @@ namespace DAOsLayer
         }
 
         // Update an existing category
-        public void UpdateCategory(short categoryId, Category updatedCategory)
+        public void UpdateCategory(Category updatedCategory)
         {
             using (var dbContext = CreateDbContext())
             {
-                var existingCategory = GetCategoryById(categoryId);
-                if (existingCategory != null)
-                {
-                    dbContext.Categories.Update(updatedCategory);
-                    dbContext.SaveChanges();
-                }
+                dbContext.Categories.Update(updatedCategory);
+                dbContext.SaveChanges();
             }
         }
 

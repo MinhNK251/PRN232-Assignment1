@@ -1,3 +1,6 @@
+using BusinessObjectsLayer.Entity;
+using DAOsLayer;
+using Microsoft.EntityFrameworkCore;
 using RepositoriesLayer;
 using ServiceLayer;
 using System.Text.Json.Serialization;
@@ -8,7 +11,9 @@ builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 builder.Logging.AddDebug();
 builder.Logging.SetMinimumLevel(LogLevel.Information);
-
+builder.Services.AddDbContext<FunewsManagementContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnectionString")));
+builder.Services.Configure<AdminAccountSettings>(builder.Configuration.GetSection("AdminAccount"));
 builder.Services.AddControllers().AddJsonOptions(options =>
 {
     options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
@@ -39,6 +44,10 @@ builder.Services.AddSingleton<INewsArticleService, NewsArticleService>();
 // -- Category
 builder.Services.AddSingleton<ICategoryRepo, CategoryRepo>();
 builder.Services.AddSingleton<ICategoryService, CategoryService>();
+
+// -- Tag
+builder.Services.AddSingleton<ITagRepo, TagRepo>();
+builder.Services.AddSingleton<ITagService, TagService>();
 
 builder.Services.AddSwaggerGen();
 
