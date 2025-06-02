@@ -1,24 +1,19 @@
-using BusinessObjectsLayer.Entity;
-using DAOsLayer;
 using Microsoft.EntityFrameworkCore;
 using NguyenKhanhMinhRazorPages;
-using RepositoriesLayer;
+using NguyenKhanhMinhRazorPages.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorPages();
-builder.Services.AddDbContext<FunewsManagementContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnectionString")));
-builder.Services.Configure<AdminAccountSettings>(builder.Configuration.GetSection("AdminAccount"));
-builder.Services.AddScoped<ICategoryRepo, CategoryRepo>();
-builder.Services.AddScoped<INewsArticleRepo, NewsArticleRepo>();
-builder.Services.AddScoped<ISystemAccountRepo, SystemAccountRepo>();
-builder.Services.AddScoped<ITagRepo, TagRepo>();
 builder.Services.AddSignalR();
 builder.Services.AddSession();
 builder.Services.AddHttpClient();
-builder.Services.AddScoped<NguyenKhanhMinhRazorPages.Services.ApiClient>();
+builder.Services.AddHttpClient<ISystemAccountService, SystemAccountService>();
+builder.Services.AddHttpClient<ICategoryService, CategoryService>();
+builder.Services.AddHttpClient<ITagService, TagService>();
+builder.Services.AddHttpClient<INewsArticleService, NewsArticleService>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

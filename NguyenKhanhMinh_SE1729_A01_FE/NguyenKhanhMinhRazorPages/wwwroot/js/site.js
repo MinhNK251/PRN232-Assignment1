@@ -3,7 +3,7 @@
     const userRole = $("#userRole").val();
 
     $.ajax({
-        url: `http://localhost:5271/api/NewsArticles?searchTitle=${searchTitle}`,
+        url: `http://localhost:5153/api/NewsArticles?searchTitle=${searchTitle}`,
         method: 'GET',
         success: (result) => {
             const articles = result.$values || result; // Adjust based on your API response format
