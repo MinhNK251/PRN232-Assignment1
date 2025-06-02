@@ -17,6 +17,10 @@
 <div>
     <h4>SystemAccount</h4>
     <hr />
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+    }
     <dl class="row">
         <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.SystemAccount.AccountId)
