@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using ServiceLayer;
 using BusinessObjectsLayer.Entity;
+using Microsoft.Extensions.Options;
+using BusinessObjectsLayer.DTO;
 
 namespace NewsManagementWebAPI.Controllers
 {
@@ -9,10 +11,12 @@ namespace NewsManagementWebAPI.Controllers
     public class SystemAccountsController : ControllerBase
     {
         private readonly ISystemAccountService _context;
+        private readonly IOptions<AdminAccountSettings> _adminAccountSettings;
 
-        public SystemAccountsController(ISystemAccountService context)
+        public SystemAccountsController(ISystemAccountService context, IOptions<AdminAccountSettings> adminAccountSettings)
         {
             _context = context;
+            _adminAccountSettings = adminAccountSettings;
         }
 
         // GET: api/SystemAccounts
@@ -37,20 +41,24 @@ namespace NewsManagementWebAPI.Controllers
             return Ok(account);
         }
 
-        // PUT: api/SystemAccounts/5
-        [HttpPut("{id}")]
-        public IActionResult PutSystemAccount(short id, SystemAccount systemAccount)
+        // GET: api/SystemAccounts/email
+        [HttpGet("email")]
+        public ActionResult<SystemAccount> GetSystemAccountByEmail([FromQuery] String email)
         {
-            if (id != systemAccount.AccountId)
-            {
-                return BadRequest();
-            }
+            var account = _context.GetAccountByEmail(email);
 
-            if (_context.GetAccountById(id) == null)
+            if (account == null)
             {
                 return NotFound();
             }
 
+            return Ok(account);
+        }
+
+        // PUT: api/SystemAccounts
+        [HttpPut]
+        public IActionResult PutSystemAccount(SystemAccount systemAccount)
+        {
             _context.UpdateAccount(systemAccount);
             return NoContent();
         }
@@ -80,6 +88,20 @@ namespace NewsManagementWebAPI.Controllers
 
             _context.RemoveAccount(id);
             return NoContent();
+        }
+
+        // POST: api/SystemAccounts
+        [HttpPost("login")]
+        public ActionResult<SystemAccount?> Login([FromBody] LoginDto dto)
+        {
+            var account = _context.Login(dto.Email, dto.Password, _adminAccountSettings);
+
+            if (account == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(account);
         }
     }
 }

@@ -1,18 +1,18 @@
-using BusinessObjectsLayer.Models;
+using BusinessObjectsLayer.Entity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
-using RepositoriesLayer;
+using NguyenKhanhMinhRazorPages.Services;
 
 namespace NguyenKhanhMinhRazorPages.Pages.SystemAccountPages
 {
     public class ProfileModel : PageModel
     {
-        private readonly ISystemAccountRepo _systemAccountRepo;
+        private readonly ISystemAccountService _systemAccountService;
 
-        public ProfileModel(ISystemAccountRepo systemAccountRepo)
+        public ProfileModel(ISystemAccountService systemAccountService)
         {
-            _systemAccountRepo = systemAccountRepo;
+            _systemAccountService = systemAccountService;
         }
 
         [BindProperty]
@@ -26,9 +26,8 @@ namespace NguyenKhanhMinhRazorPages.Pages.SystemAccountPages
                 return RedirectToPage("/NotPermission");
             }
 
-            var currentUser = _systemAccountRepo.GetAccountByEmail(userEmail);
+            var currentUser = await _systemAccountService.GetAccountByEmail(userEmail);
             SystemAccount = currentUser;
-
             ViewData["ReturnUrl"] = returnUrl; // Store returnUrl in ViewData
             return Page();
         }
@@ -43,11 +42,11 @@ namespace NguyenKhanhMinhRazorPages.Pages.SystemAccountPages
             try
             {
                 HttpContext.Session.SetString("UserName", SystemAccount.AccountName.ToString());
-                _systemAccountRepo.UpdateAccount(SystemAccount);
+                await _systemAccountService.UpdateAccount(SystemAccount);
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (_systemAccountRepo.GetAccountById(SystemAccount.AccountId) == null)
+                if (await _systemAccountService.GetAccountById(SystemAccount.AccountId) == null)
                 {
                     return NotFound();
                 }

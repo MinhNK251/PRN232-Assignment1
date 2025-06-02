@@ -6,19 +6,18 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using BusinessObjectsLayer.Models;
-using DAOsLayer;
-using RepositoriesLayer;
+using BusinessObjectsLayer.Entity;
+using NguyenKhanhMinhRazorPages.Services;
 
 namespace NguyenKhanhMinhRazorPages.Pages.CategoryPages
 {
     public class EditModel : PageModel
     {
-        private readonly ICategoryRepo _categoryRepo;
+        private readonly ICategoryService _categoryService;
 
-        public EditModel(ICategoryRepo categoryRepo)
+        public EditModel(ICategoryService categoryService)
         {
-            _categoryRepo = categoryRepo;
+            _categoryService = categoryService;
         }
 
         [BindProperty]
@@ -31,13 +30,13 @@ namespace NguyenKhanhMinhRazorPages.Pages.CategoryPages
                 return NotFound();
             }
 
-            var category = _categoryRepo.GetCategoryById(id);
+            var category = await _categoryService.GetCategoryById(id);
             if (category == null)
             {
                 return NotFound();
             }
             Category = category;
-            ViewData["ParentCategoryId"] = new SelectList(_categoryRepo.GetCategories(), "CategoryId", "CategoryName");
+            ViewData["ParentCategoryId"] = new SelectList(await _categoryService.GetCategories(), "CategoryId", "CategoryName");
             return Page();
         }
 
@@ -45,17 +44,17 @@ namespace NguyenKhanhMinhRazorPages.Pages.CategoryPages
         {
             if (!ModelState.IsValid)
             {
-                ViewData["ParentCategoryId"] = new SelectList(_categoryRepo.GetCategories(), "CategoryId", "CategoryName");
+                ViewData["ParentCategoryId"] = new SelectList(await _categoryService.GetCategories(), "CategoryId", "CategoryName");
                 return Page();
             }
 
             try
             {
-                _categoryRepo.UpdateCategory(Category.CategoryId, Category);
+                await _categoryService.UpdateCategory(Category);
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (_categoryRepo.GetCategoryById(Category.CategoryId) == null)
+                if (await _categoryService.GetCategoryById(Category.CategoryId) == null)
                 {
                     return NotFound();
                 }

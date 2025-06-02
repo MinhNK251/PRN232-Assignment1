@@ -19,17 +19,10 @@ namespace RepositoriesLayer
         public void AddCategory(Category category)
             => CategoryDAO.Instance.AddCategory(category);
 
-        public void UpdateCategory(short categoryId, Category category)
-            => CategoryDAO.Instance.UpdateCategory(categoryId, category);
+        public void UpdateCategory(Category category)
+            => CategoryDAO.Instance.UpdateCategory(category);
 
         public void RemoveCategory(short categoryId)
-        {
-            var cat = CategoryDAO.Instance.GetCategoryById(categoryId);
-            if (cat != null && cat.IsActive == true)
-            {
-                cat.IsActive = false;
-                CategoryDAO.Instance.UpdateCategory(categoryId, cat);
-            }
-        }
+            => CategoryDAO.Instance.RemoveCategory(categoryId);
     }
 }

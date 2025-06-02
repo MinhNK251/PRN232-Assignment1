@@ -27,14 +27,7 @@ namespace RepositoriesLayer
             => NewsArticleDAO.Instance.UpdateNewsArticle(articleId, updatedArticle);
 
         public void RemoveNewsArticle(string articleId)
-        {
-            var art = NewsArticleDAO.Instance.GetNewsArticleById(articleId);
-            if (art != null && art.NewsStatus == true)
-            {
-                art.NewsStatus = false;
-                NewsArticleDAO.Instance.UpdateNewsArticle(articleId, art);
-            }
-        }
+         => NewsArticleDAO.Instance.RemoveNewsArticle(articleId);
 
         public void RemoveTagsByArticleId(string articleId)
             => NewsArticleDAO.Instance.RemoveTagsByArticleId(articleId);

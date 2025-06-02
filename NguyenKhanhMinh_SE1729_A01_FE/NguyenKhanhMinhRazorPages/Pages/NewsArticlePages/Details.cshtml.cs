@@ -2,20 +2,20 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using BusinessObjectsLayer.Models;
-using RepositoriesLayer;
+using BusinessObjectsLayer.Entity;
+using NguyenKhanhMinhRazorPages.Services;
 
 namespace NguyenKhanhMinhRazorPages.Pages.NewsArticlePages
 {
     public class DetailsModel : PageModel
     {
-        private readonly INewsArticleRepo _newsArticleRepo;
-        private readonly ITagRepo _tagRepo;
+        private readonly INewsArticleService _newsArticleService;
+        private readonly ITagService _tagService;
 
-        public DetailsModel(INewsArticleRepo newsArticleRepo, ITagRepo tagRepo)
+        public DetailsModel(INewsArticleService newsArticleService, ITagService tagService)
         {
-            _newsArticleRepo = newsArticleRepo;
-            _tagRepo = tagRepo;
+            _newsArticleService = newsArticleService;
+            _tagService = tagService;
         }
 
         public NewsArticle NewsArticle { get; set; } = default!;
@@ -28,7 +28,7 @@ namespace NguyenKhanhMinhRazorPages.Pages.NewsArticlePages
                 return NotFound();
             }
 
-            var newsArticle = _newsArticleRepo.GetNewsArticleById(id);
+            var newsArticle = await _newsArticleService.GetNewsArticleById(id);
             if (newsArticle == null)
             {
                 return NotFound();
@@ -37,7 +37,7 @@ namespace NguyenKhanhMinhRazorPages.Pages.NewsArticlePages
             NewsArticle = newsArticle;
 
             // Fetch related tags
-            Tags = _tagRepo.GetTagsByNewsArticleId(id);
+            Tags = await _tagService.GetTagsByNewsArticleId(id);
 
             return Page();
         }

@@ -6,19 +6,20 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using BusinessObjectsLayer.Models;
+using BusinessObjectsLayer.Entity;
 using DAOsLayer;
 using RepositoriesLayer;
+using NguyenKhanhMinhRazorPages.Services;
 
 namespace NguyenKhanhMinhRazorPages.Pages.SystemAccountPages
 {
     public class EditModel : PageModel
     {
-        private readonly ISystemAccountRepo _systemAccountRepo;
+        private readonly ISystemAccountService _systemAccountService;
 
-        public EditModel(ISystemAccountRepo systemAccountRepo)
+        public EditModel(ISystemAccountService systemAccountService)
         {
-            _systemAccountRepo = systemAccountRepo;
+            _systemAccountService = systemAccountService;
         }
 
         [BindProperty]
@@ -26,7 +27,7 @@ namespace NguyenKhanhMinhRazorPages.Pages.SystemAccountPages
 
         public async Task<IActionResult> OnGetAsync(short id)
         {
-            var systemaccount = _systemAccountRepo.GetAccountById(id);
+            var systemaccount = await _systemAccountService.GetAccountById(id);
             if (systemaccount == null)
             {
                 return NotFound();
@@ -44,11 +45,11 @@ namespace NguyenKhanhMinhRazorPages.Pages.SystemAccountPages
 
             try
             {
-                _systemAccountRepo.UpdateAccount(SystemAccount);
+                await _systemAccountService.UpdateAccount(SystemAccount);
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (_systemAccountRepo.GetAccountById(SystemAccount.AccountId) == null)
+                if (await _systemAccountService.GetAccountById(SystemAccount.AccountId) == null)
                 {
                     return NotFound();
                 }

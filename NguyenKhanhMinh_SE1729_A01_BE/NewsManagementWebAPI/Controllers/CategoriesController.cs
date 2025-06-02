@@ -24,6 +24,15 @@ namespace NewsManagementWebAPI.Controllers
             return Ok(categories);
         }
 
+        // GET: api/Categories/active
+        [HttpGet("active")]
+        public ActionResult<IEnumerable<Category>> GetActiveCategories()
+        {
+            var categories = _service.GetActiveCategories();
+            return Ok(categories);
+        }
+
+
         // GET: api/Categories/5
         [HttpGet("{id}")]
         public ActionResult<Category> GetCategory(short id)
@@ -37,18 +46,10 @@ namespace NewsManagementWebAPI.Controllers
         }
 
         // PUT: api/Categories/5
-        [HttpPut("{id}")]
-        public IActionResult PutCategory(short id, Category category)
+        [HttpPut]
+        public IActionResult PutCategory(Category category)
         {
-            try
-            {
-                _service.UpdateCategory(id, category);
-            }
-            catch
-            {
-                return NotFound();
-            }
-
+            _service.UpdateCategory(category);
             return NoContent();
         }
 

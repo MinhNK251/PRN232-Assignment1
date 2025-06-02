@@ -5,21 +5,20 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
-using BusinessObjectsLayer.Models;
-using DAOsLayer;
-using RepositoriesLayer;
+using BusinessObjectsLayer.Entity;
+using NguyenKhanhMinhRazorPages.Services;
 
 namespace NguyenKhanhMinhRazorPages.Pages.TagPages
 {
     public class DeleteModel : PageModel
     {
-        private readonly ITagRepo _tagRepo;
-        private readonly INewsArticleRepo _newsArticleRepo;
+        private readonly ITagService _tagService;
+        private readonly INewsArticleService _newsArticleService;
 
-        public DeleteModel(ITagRepo tagRepo, INewsArticleRepo newsArticleRepo)
+        public DeleteModel(ITagService tagService, INewsArticleService newsArticleService)
         {
-            _tagRepo = tagRepo;
-            _newsArticleRepo = newsArticleRepo;
+            _tagService = tagService;
+            _newsArticleService = newsArticleService;
         }
 
         public Tag Tag { get; set; } = default!;
@@ -27,23 +26,22 @@ namespace NguyenKhanhMinhRazorPages.Pages.TagPages
 
         public async Task<IActionResult> OnGetAsync(int id)
         {
-            var tag = _tagRepo.GetTagById(id);
+            var tag = await _tagService.GetTagById(id);
             if (tag == null)
             {
                 return NotFound();
             }
             Tag = tag;
-            NewsArticles = _newsArticleRepo.GetArticlesByTagId(id);
+            NewsArticles = await _newsArticleService.GetArticlesByTagId(id);
             return Page();
         }
 
         public async Task<IActionResult> OnPostAsync(int id)
         {
-            var tag = _tagRepo.GetTagById(id);
+            var tag = await _tagService.GetTagById(id);
             if (tag != null)
             {
-                _tagRepo.RemoveArticlesByTagId(id);
-                _tagRepo.RemoveTag(id);
+                await _tagService.RemoveTag(id);
             }
 
             return RedirectToPage("./Index");

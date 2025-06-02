@@ -5,19 +5,18 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
-using BusinessObjectsLayer.Models;
-using DAOsLayer;
-using RepositoriesLayer;
+using BusinessObjectsLayer.Entity;
+using NguyenKhanhMinhRazorPages.Services;
 
 namespace NguyenKhanhMinhRazorPages.Pages.CategoryPages
 {
     public class DeleteModel : PageModel
     {
-        private readonly ICategoryRepo _categoryRepo;
+        private readonly ICategoryService _categoryService;
 
-        public DeleteModel(ICategoryRepo categoryRepo)
+        public DeleteModel(ICategoryService categoryService)
         {
-            _categoryRepo = categoryRepo;
+            _categoryService = categoryService;
         }
 
         [BindProperty]
@@ -25,7 +24,7 @@ namespace NguyenKhanhMinhRazorPages.Pages.CategoryPages
 
         public async Task<IActionResult> OnGetAsync(short id)
         {
-            var category = _categoryRepo.GetCategoryById(id);
+            var category = await _categoryService.GetCategoryById(id);
             if (category == null)
             {
                 return NotFound();
@@ -36,7 +35,7 @@ namespace NguyenKhanhMinhRazorPages.Pages.CategoryPages
 
         public async Task<IActionResult> OnPostAsync(short id)
         {
-            var category = _categoryRepo.GetCategoryById(id);
+            var category = await _categoryService.GetCategoryById(id);
             if (category != null)
             {
                 if (category.NewsArticles.Any())
@@ -44,7 +43,7 @@ namespace NguyenKhanhMinhRazorPages.Pages.CategoryPages
                     TempData["ErrorMessage"] = "Cannot delete this category because it is associated with news articles.";
                     return Page();
                 }
-                _categoryRepo.RemoveCategory(id);
+                await _categoryService.RemoveCategory(id);
             }
             return RedirectToPage("./Index");
         }

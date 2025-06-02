@@ -5,26 +5,25 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
-using BusinessObjectsLayer.Models;
-using DAOsLayer;
-using RepositoriesLayer;
+using BusinessObjectsLayer.Entity;
+using NguyenKhanhMinhRazorPages.Services;
 
 namespace NguyenKhanhMinhRazorPages.Pages.SystemAccountPages
 {
     public class IndexModel : PageModel
     {
-        private readonly ISystemAccountRepo _systemAccountRepo;
+        private readonly ISystemAccountService _systemAccountService;
 
-        public IndexModel(ISystemAccountRepo systemAccountRepo)
+        public IndexModel(ISystemAccountService systemAccountService)
         {
-            _systemAccountRepo = systemAccountRepo;
+            _systemAccountService = systemAccountService;
         }
 
-        public IList<SystemAccount> SystemAccount { get;set; } = default!;
+        public IList<SystemAccount> SystemAccount { get; set; } = default!;
 
         public async Task OnGetAsync()
         {
-            SystemAccount = _systemAccountRepo.GetAccounts();
+            SystemAccount = await _systemAccountService.GetAccounts();
         }
     }
 }

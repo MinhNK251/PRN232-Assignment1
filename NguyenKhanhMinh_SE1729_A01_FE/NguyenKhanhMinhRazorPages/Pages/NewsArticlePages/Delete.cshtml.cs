@@ -5,23 +5,22 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
-using BusinessObjectsLayer.Models;
-using DAOsLayer;
-using RepositoriesLayer;
+using BusinessObjectsLayer.Entity;
 using Microsoft.AspNetCore.SignalR;
+using NguyenKhanhMinhRazorPages.Services;
 
 namespace NguyenKhanhMinhRazorPages.Pages.NewsArticlePages
 {
     public class DeleteModel : PageModel
     {
-        private readonly INewsArticleRepo _newsArticleRepo;
-        private readonly ITagRepo _tagRepo;
+        private readonly INewsArticleService _newsArticleService;
+        private readonly ITagService _tagService;
         private readonly IHubContext<SignalrServer> _hubContext;
 
-        public DeleteModel(INewsArticleRepo newsArticleRepo, ITagRepo tagRepo, IHubContext<SignalrServer> hubContext)
+        public DeleteModel(INewsArticleService newsArticleService, ITagService tagService, IHubContext<SignalrServer> hubContext)
         {
-            _newsArticleRepo = newsArticleRepo;
-            _tagRepo = tagRepo;
+            _newsArticleService = newsArticleService;
+            _tagService = tagService;
             _hubContext = hubContext;
         }
 
@@ -35,7 +34,7 @@ namespace NguyenKhanhMinhRazorPages.Pages.NewsArticlePages
                 return NotFound();
             }
 
-            var newsArticle = _newsArticleRepo.GetNewsArticleById(id);
+            var newsArticle = await _newsArticleService.GetNewsArticleById(id);
             if (newsArticle == null)
             {
                 return NotFound();
@@ -44,7 +43,7 @@ namespace NguyenKhanhMinhRazorPages.Pages.NewsArticlePages
             NewsArticle = newsArticle;
 
             // Fetch related tags
-            Tags = _tagRepo.GetTagsByNewsArticleId(id);
+            Tags = await _tagService.GetTagsByNewsArticleId(id);
 
             return Page();
         }
@@ -56,11 +55,10 @@ namespace NguyenKhanhMinhRazorPages.Pages.NewsArticlePages
                 return NotFound();
             }
 
-            var existingArticle = _newsArticleRepo.GetNewsArticleById(id);
+            var existingArticle = await _newsArticleService.GetNewsArticleById(id);
             if (existingArticle != null)
             {
-                _newsArticleRepo.RemoveTagsByArticleId(id);
-                _newsArticleRepo.RemoveNewsArticle(id);
+                await _newsArticleService.RemoveNewsArticle(id);
                 await _hubContext.Clients.All.SendAsync("LoadData");
             }
 

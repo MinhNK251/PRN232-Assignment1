@@ -5,26 +5,28 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using BusinessObjectsLayer.Models;
-using RepositoriesLayer;
+using BusinessObjectsLayer.Entity;
 using Microsoft.AspNetCore.SignalR;
+using NguyenKhanhMinhRazorPages.Services;
+using BusinessObjectsLayer.DTO;
+using DAOsLayer;
 
 namespace NguyenKhanhMinhRazorPages.Pages.NewsArticlePages
 {
     public class CreateModel : PageModel
     {
-        private readonly INewsArticleRepo _newsArticleRepo;
-        private readonly ICategoryRepo _categoryRepo;
-        private readonly ISystemAccountRepo _systemAccountRepo;
-        private readonly ITagRepo _tagRepo;
+        private readonly INewsArticleService _newsArticleService;
+        private readonly ICategoryService _categoryService;
+        private readonly ISystemAccountService _systemAccountService;
+        private readonly ITagService _tagService;
         private readonly IHubContext<SignalrServer> _hubContext;
 
-        public CreateModel(INewsArticleRepo newsArticleRepo, ICategoryRepo categoryRepo, ISystemAccountRepo systemAccountRepo, ITagRepo tagRepo, IHubContext<SignalrServer> hubContext)
+        public CreateModel(INewsArticleService newsArticleService, ICategoryService categoryService, ISystemAccountService systemAccountService, ITagService tagService, IHubContext<SignalrServer> hubContext)
         {
-            _newsArticleRepo = newsArticleRepo;
-            _categoryRepo = categoryRepo;
-            _systemAccountRepo = systemAccountRepo;
-            _tagRepo = tagRepo;
+            _newsArticleService = newsArticleService;
+            _categoryService = categoryService;
+            _systemAccountService = systemAccountService;
+            _tagService = tagService;
             _hubContext = hubContext;
         }
 
@@ -35,8 +37,7 @@ namespace NguyenKhanhMinhRazorPages.Pages.NewsArticlePages
 
         public async Task<IActionResult> OnGetAsync()
         {
-            ViewData["CategoryId"] = new SelectList(_categoryRepo.GetCategories(), "CategoryId", "CategoryName");
-            ViewData["Tags"] = new MultiSelectList(_tagRepo.GetTags(), "TagId", "TagName");
+            await PopulateViewDataAsync(); 
             return Page();
         }
 
@@ -44,40 +45,48 @@ namespace NguyenKhanhMinhRazorPages.Pages.NewsArticlePages
         {
             if (!ModelState.IsValid)
             {
-                ViewData["CategoryId"] = new SelectList(_categoryRepo.GetCategories(), "CategoryId", "CategoryName");
-                ViewData["Tags"] = new MultiSelectList(_tagRepo.GetTags(), "TagId", "TagName");
+                await PopulateViewDataAsync(); 
                 return Page();
             }
-            var existingArticle = _newsArticleRepo.GetNewsArticleById(NewsArticle.NewsArticleId);
+            var existingArticle = await _newsArticleService.GetNewsArticleById(NewsArticle.NewsArticleId);
             if (existingArticle != null)
             {
                 ModelState.AddModelError("NewsArticle.NewsArticleId", "This NewsArticle ID already exists. Please enter a unique ID.");
-                ViewData["CategoryId"] = new SelectList(_categoryRepo.GetCategories(), "CategoryId", "CategoryName");
-                ViewData["Tags"] = new MultiSelectList(_tagRepo.GetTags(), "TagId", "TagName");
+                await PopulateViewDataAsync(); 
                 return Page();
             }
-            NewsArticle.CreatedDate = DateTime.Now;
-            NewsArticle.ModifiedDate = DateTime.Now;
+
             var userEmail = HttpContext.Session.GetString("UserEmail");
             if (string.IsNullOrEmpty(userEmail))
             {
                 return RedirectToPage("/Login");
             }
-            SystemAccount account = _systemAccountRepo.GetAccountByEmail(userEmail);
-            NewsArticle.CreatedById = account.AccountId;
-            NewsArticle.UpdatedById = account.AccountId;
-            if (SelectedTags != null && SelectedTags.Any())
+
+            var account = await _systemAccountService.GetAccountByEmail(userEmail);
+            var dto = new NewsArticleDto
             {
-                var existingTags = _tagRepo.GetTagsByIds(SelectedTags);
-                NewsArticle.Tags = existingTags;
-            }
-            else
-            {
-                NewsArticle.Tags = new List<Tag>();
-            }
-            _newsArticleRepo.AddNewsArticle(NewsArticle);
+                NewsArticleId = NewsArticle.NewsArticleId,
+                NewsTitle = NewsArticle.NewsTitle,
+                Headline = NewsArticle.Headline,
+                CreatedDate = DateTime.Now,
+                ModifiedDate = DateTime.Now,
+                NewsContent = NewsArticle.NewsContent,
+                NewsSource = NewsArticle.NewsSource,
+                CategoryId = NewsArticle.CategoryId,
+                NewsStatus = NewsArticle.NewsStatus,
+                CreatedById = account.AccountId,
+                UpdatedById = account.AccountId,
+                TagIds = SelectedTags ?? new List<int>()
+            };
+            await _newsArticleService.AddNewsArticle(dto);
             await _hubContext.Clients.All.SendAsync("LoadData");
             return RedirectToPage("./Index");
+        }
+
+        private async Task PopulateViewDataAsync()
+        {
+            ViewData["CategoryId"] = new SelectList(await _categoryService.GetCategories(), "CategoryId", "CategoryName");
+            ViewData["Tags"] = new MultiSelectList(await _tagService.GetTags(), "TagId", "TagName");
         }
     }
 }

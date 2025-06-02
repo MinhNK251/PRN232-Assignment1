@@ -5,24 +5,23 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using BusinessObjectsLayer.Models;
-using DAOsLayer;
-using RepositoriesLayer;
+using BusinessObjectsLayer.Entity;
+using NguyenKhanhMinhRazorPages.Services;
 
 namespace NguyenKhanhMinhRazorPages.Pages.CategoryPages
 {
     public class CreateModel : PageModel
     {
-        private readonly ICategoryRepo _categoryRepo;
+        private readonly ICategoryService _categoryService;
 
-        public CreateModel(ICategoryRepo categoryRepo)
+        public CreateModel(ICategoryService categoryService)
         {
-            _categoryRepo = categoryRepo;
+            _categoryService = categoryService;
         }
 
-        public IActionResult OnGet()
+        public async Task<IActionResult> OnGetAsync()
         {
-            ViewData["ParentCategoryId"] = new SelectList(_categoryRepo.GetCategories(), "CategoryId", "CategoryName");
+            ViewData["ParentCategoryId"] = new SelectList(await _categoryService.GetCategories(), "CategoryId", "CategoryName");
             return Page();
         }
 
@@ -33,12 +32,10 @@ namespace NguyenKhanhMinhRazorPages.Pages.CategoryPages
         {
             if (!ModelState.IsValid)
             {
-                ViewData["ParentCategoryId"] = new SelectList(_categoryRepo.GetCategories(), "CategoryId", "CategoryName");
+                ViewData["ParentCategoryId"] = new SelectList(await _categoryService.GetCategories(), "CategoryId", "CategoryName");
                 return Page();
             }
-
-            _categoryRepo.AddCategory(Category);
-
+            await _categoryService.AddCategory(Category);
             return RedirectToPage("./Index");
         }
     }

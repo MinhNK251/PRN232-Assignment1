@@ -5,19 +5,18 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using BusinessObjectsLayer.Models;
-using DAOsLayer;
-using RepositoriesLayer;
+using BusinessObjectsLayer.Entity;
+using NguyenKhanhMinhRazorPages.Services;
 
 namespace NguyenKhanhMinhRazorPages.Pages.TagPages
 {
     public class CreateModel : PageModel
     {
-        private readonly ITagRepo _tagRepo;
+        private readonly ITagService _tagService;
 
-        public CreateModel(ITagRepo tagRepo)
+        public CreateModel(ITagService tagService)
         {
-            _tagRepo = tagRepo;
+            _tagService = tagService;
         }
 
         public IActionResult OnGet()
@@ -34,12 +33,12 @@ namespace NguyenKhanhMinhRazorPages.Pages.TagPages
             {
                 return Page();
             }
-            if (_tagRepo.GetTagById(Tag.TagId) != null)
+            if (await _tagService.GetTagById(Tag.TagId) != null)
             {
                 ModelState.AddModelError("Tag.TagId", "This Tag ID already exists. Please enter a unique ID.");
                 return Page();
             }
-            _tagRepo.AddTag(Tag);
+            await _tagService.AddTag(Tag);
             return RedirectToPage("./Index");
         }
     }
