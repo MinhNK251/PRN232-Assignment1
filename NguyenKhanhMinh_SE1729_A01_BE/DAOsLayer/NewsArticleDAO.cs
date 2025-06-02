@@ -1,8 +1,5 @@
 ﻿using BusinessObjectsLayer.Entity;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace DAOsLayer
 {
@@ -39,9 +36,10 @@ namespace DAOsLayer
             using (var dbContext = CreateDbContext())
             {
                 return dbContext.NewsArticles.AsNoTracking()
-                    //.OrderByDescending(n => n.NewsArticleId.Length) // Longer IDs first
+                    .OrderByDescending(n => n.NewsArticleId) // Longer IDs first
                     //.ThenByDescending(n => n.NewsArticleId) // Then order lexicographically
                     .OrderByDescending(n => n.NewsArticleId)
+                    .Where(n => n.NewsStatus == true)
                     .Include(n => n.Category)
                     .Include(n => n.Tags)
                     .Include(n => n.CreatedBy)
@@ -56,12 +54,12 @@ namespace DAOsLayer
             using (var dbContext = CreateDbContext())
             {
                 return dbContext.NewsArticles.AsNoTracking()
+                    .Where(n => n.NewsStatus == true && n.CreatedById == createdById)
                     .OrderByDescending(n => n.NewsArticleId)
                     .Include(n => n.Category)
                     .Include(n => n.Tags)
                     .Include(n => n.CreatedBy)
                     .Include(n => n.UpdatedBy)
-                    .Where(n => n.CreatedById == createdById)
                     .ToList();
             }
         }
@@ -72,6 +70,7 @@ namespace DAOsLayer
             using (var dbContext = CreateDbContext())
             {
                 return dbContext.NewsArticles.AsNoTracking()
+                    .Where(n => n.NewsStatus == true)
                     .Include(n => n.Category)
                     .Include(n => n.Tags)
                     .Include(n => n.CreatedBy)
@@ -90,6 +89,7 @@ namespace DAOsLayer
                         .Any(nt => EF.Property<int>(nt, "TagId") == tagId && 
                                    EF.Property<string>(nt, "NewsArticleId") == n.NewsArticleId))
                     .OrderByDescending(n => n.NewsArticleId)
+                    .Where(n => n.NewsStatus == true)
                     .ToList();
             }
         }
@@ -131,10 +131,29 @@ namespace DAOsLayer
         {
             using (var dbContext = CreateDbContext())
             {
-                var existingNewsArticle = GetNewsArticleById(newsArticleId);
+                var existingNewsArticle = dbContext.NewsArticles
+                    .Include(na => na.Tags)
+                    .FirstOrDefault(na => na.NewsArticleId == newsArticleId);
+
                 if (existingNewsArticle != null)
                 {
-                    dbContext.NewsArticles.Update(updatedNewsArticle);
+                    dbContext.Entry(existingNewsArticle).CurrentValues.SetValues(updatedNewsArticle);
+
+                    existingNewsArticle.Tags.Clear();
+
+                    foreach (var tag in updatedNewsArticle.Tags)
+                    {
+                        var existingTag = dbContext.Tags.FirstOrDefault(t => t.TagId == tag.TagId);
+                        if (existingTag != null)
+                        {
+                            existingNewsArticle.Tags.Add(existingTag);
+                        }
+                        else
+                        {
+                            existingNewsArticle.Tags.Add(tag);
+                        }
+                    }
+
                     dbContext.SaveChanges();
                 }
             }
