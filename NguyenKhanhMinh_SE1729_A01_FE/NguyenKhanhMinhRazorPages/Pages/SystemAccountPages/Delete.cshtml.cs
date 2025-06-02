@@ -42,11 +42,17 @@ namespace NguyenKhanhMinhRazorPages.Pages.SystemAccountPages
             var systemaccount = await _systemAccountService.GetAccountById(id);
             if (systemaccount != null)
             {
-                SystemAccount = systemaccount;
-                foreach (var article in systemaccount.NewsArticles)
+                //SystemAccount = systemaccount;
+                //foreach (var article in systemaccount.NewsArticles)
+                //{
+                //    await _newsArticleService.RemoveTagsByArticleId(article.NewsArticleId);
+                //    await _newsArticleService.RemoveNewsArticle(article.NewsArticleId);
+                //}
+                if (systemaccount.NewsArticles.Any())
                 {
-                    await _newsArticleService.RemoveTagsByArticleId(article.NewsArticleId);
-                    await _newsArticleService.RemoveNewsArticle(article.NewsArticleId);
+                    SystemAccount = systemaccount;
+                    TempData["ErrorMessage"] = "Cannot delete this account because it has created news articles.";
+                    return Page();
                 }
                 await _systemAccountService.RemoveAccount(id);
             }

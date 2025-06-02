@@ -40,6 +40,7 @@ namespace NguyenKhanhMinhRazorPages.Pages.CategoryPages
             {
                 if (category.NewsArticles.Any())
                 {
+                    Category = category;
                     TempData["ErrorMessage"] = "Cannot delete this category because it is associated with news articles.";
                     return Page();
                 }
