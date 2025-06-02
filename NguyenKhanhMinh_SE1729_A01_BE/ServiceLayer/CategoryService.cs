@@ -48,14 +48,9 @@ namespace ServiceLayer
             _repo.RemoveCategory(categoryId);
         }
 
-        public void UpdateCategory(short categoryId, Category category)
+        public void UpdateCategory(Category category)
         {
-            var existing = _repo.GetCategoryById(categoryId);
-
-            if (existing == null)
-                throw new InvalidOperationException("Category not found.");
-
-            _repo.UpdateCategory(categoryId, existing);
+            _repo.UpdateCategory(category);
         }
     }
 }

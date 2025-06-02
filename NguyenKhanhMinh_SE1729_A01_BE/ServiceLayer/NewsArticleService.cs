@@ -32,9 +32,6 @@ namespace ServiceLayer
 
         public NewsArticle? GetNewsArticleById(string articleId)
         {
-            if (string.IsNullOrWhiteSpace(articleId))
-                throw new ArgumentException("Article ID cannot be null or empty.", nameof(articleId));
-
             return _repo.GetNewsArticleById(articleId);
         }
 

@@ -1,4 +1,5 @@
 ﻿using BusinessObjectsLayer.Entity;
+using Microsoft.Extensions.Options;
 
 namespace ServiceLayer
 {
@@ -10,5 +11,6 @@ namespace ServiceLayer
         void AddAccount(SystemAccount account);
         void UpdateAccount(SystemAccount updatedAccount);
         void RemoveAccount(short accountId);
+        SystemAccount? Login(string email, string password, IOptions<AdminAccountSettings> adminAccountSettings);
     }
 }

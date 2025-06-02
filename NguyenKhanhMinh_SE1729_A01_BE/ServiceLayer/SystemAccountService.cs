@@ -1,4 +1,5 @@
 ﻿using BusinessObjectsLayer.Entity;
+using Microsoft.Extensions.Options;
 using RepositoriesLayer;
 
 namespace ServiceLayer
@@ -51,6 +52,11 @@ namespace ServiceLayer
             }
 
             _repo.RemoveAccount(accountId);
+        }
+
+        public SystemAccount? Login(string email, string password, IOptions<AdminAccountSettings> adminAccountSettings)
+        {
+            return _repo.Login(email, password, adminAccountSettings);
         }
     }
 }
