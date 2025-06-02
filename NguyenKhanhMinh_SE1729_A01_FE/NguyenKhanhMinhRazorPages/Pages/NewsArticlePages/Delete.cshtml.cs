@@ -6,8 +6,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using BusinessObjectsLayer.Entity;
-using DAOsLayer;
-using RepositoriesLayer;
 using Microsoft.AspNetCore.SignalR;
 using NguyenKhanhMinhRazorPages.Services;
 
@@ -15,40 +13,38 @@ namespace NguyenKhanhMinhRazorPages.Pages.NewsArticlePages
 {
     public class DeleteModel : PageModel
     {
-        private readonly INewsArticleRepo _newsArticleRepo;
-        private readonly ITagRepo _tagRepo;
+        private readonly INewsArticleService _newsArticleService;
+        private readonly ITagService _tagService;
         private readonly IHubContext<SignalrServer> _hubContext;
-        private readonly ApiClient _apiClient;
 
-        public DeleteModel(INewsArticleRepo newsArticleRepo, ITagRepo tagRepo, IHubContext<SignalrServer> hubContext, ApiClient apiClient)
+        public DeleteModel(INewsArticleService newsArticleService, ITagService tagService, IHubContext<SignalrServer> hubContext)
         {
-            _newsArticleRepo = newsArticleRepo;
-            _tagRepo = tagRepo;
+            _newsArticleService = newsArticleService;
+            _tagService = tagService;
             _hubContext = hubContext;
-            _apiClient = apiClient;
         }
 
         public NewsArticle NewsArticle { get; set; } = default!;
-        public List<Tag> Tags { get; set; } = new List<Tag>();
+        public List<Tag> Tags { get; set; } = new();
 
         public async Task<IActionResult> OnGetAsync(string id)
         {
-            if (id == null)
+            if (string.IsNullOrEmpty(id))
             {
                 return NotFound();
             }
 
-            // Use API to get article
-            NewsArticle = await _apiClient.GetAsync<NewsArticle>($"api/NewsArticles/{id}");
-
-            if (NewsArticle == null)
+            var newsArticle = await _newsArticleService.GetNewsArticleById(id);
+            if (newsArticle == null)
             {
                 return NotFound();
             }
-            
-            // Get tags for this article
-            Tags = _tagRepo.GetTagsByNewsArticleId(id);
-            
+
+            NewsArticle = newsArticle;
+
+            // Fetch related tags
+            Tags = await _tagService.GetTagsByNewsArticleId(id);
+
             return Page();
         }
 
@@ -59,12 +55,13 @@ namespace NguyenKhanhMinhRazorPages.Pages.NewsArticlePages
                 return NotFound();
             }
 
-            // Delete article via API
-            await _apiClient.DeleteAsync($"api/NewsArticles/{id}");
-            
-            // Signal update to other clients
-            await _hubContext.Clients.All.SendAsync("LoadData");
-            
+            var existingArticle = await _newsArticleService.GetNewsArticleById(id);
+            if (existingArticle != null)
+            {
+                await _newsArticleService.RemoveNewsArticle(id);
+                await _hubContext.Clients.All.SendAsync("LoadData");
+            }
+
             return RedirectToPage("./Index");
         }
     }

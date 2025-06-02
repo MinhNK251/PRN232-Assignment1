@@ -2,19 +2,21 @@ using BusinessObjectsLayer.Entity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Options;
+using NguyenKhanhMinhRazorPages.Services;
 using RepositoriesLayer;
+using System.Text.Json;
+using System.Text;
+using BusinessObjectsLayer.DTO;
 
 namespace NguyenKhanhMinhRazorPages.Pages
 {
     public class LoginModel : PageModel
     {
-        private readonly ISystemAccountRepo _accountRepo;
-        private readonly IOptions<AdminAccountSettings> _adminAccountSettings;
+        private readonly ISystemAccountService _accountService;
 
-        public LoginModel(ISystemAccountRepo accountRepo, IOptions<AdminAccountSettings> adminAccountSettings)
+        public LoginModel(ISystemAccountService accountService)
         {
-            _accountRepo = accountRepo;
-            _adminAccountSettings = adminAccountSettings;
+            _accountService = accountService;
         }
 
         [BindProperty]
@@ -37,22 +39,29 @@ namespace NguyenKhanhMinhRazorPages.Pages
                 return Page();
             }
 
-            var account = _accountRepo.Login(Email, Password, _adminAccountSettings);
-
-            if (account != null)
+            LoginDto requestBody = new LoginDto
             {
-                // Store session data
-                HttpContext.Session.SetString("UserEmail", account.AccountEmail);
-                HttpContext.Session.SetString("UserRole", account.AccountRole.ToString());
-                HttpContext.Session.SetString("UserName", account.AccountName.ToString());
-                return account.AccountRole == 0
+                Email = this.Email,
+                Password = this.Password
+            };
+            var response = await _accountService.Login(requestBody);
+            if (response != null)
+            {
+                HttpContext.Session.SetString("UserEmail", response.AccountEmail);
+                HttpContext.Session.SetString("UserRole", response.AccountRole.ToString());
+                HttpContext.Session.SetString("UserName", response.AccountName);
+                HttpContext.Session.SetString("AccountId", response.AccountId.ToString());
+
+                // Redirect by role
+                return response.AccountRole == 0
                     ? RedirectToPage("/SystemAccountPages/Index")
                     : RedirectToPage("/NewsArticlePages/Index");
             }
-
-            // Failed login
-            ErrorMessage = "Invalid email or password.";
-            return Page();
+            else
+            {
+                ErrorMessage = "Invalid email or password.";
+                return Page();
+            }
         }
     }
 }

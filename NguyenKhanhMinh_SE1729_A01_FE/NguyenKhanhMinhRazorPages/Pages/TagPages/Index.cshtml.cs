@@ -6,25 +6,24 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using BusinessObjectsLayer.Entity;
-using DAOsLayer;
-using RepositoriesLayer;
+using NguyenKhanhMinhRazorPages.Services;
 
 namespace NguyenKhanhMinhRazorPages.Pages.TagPages
 {
     public class IndexModel : PageModel
     {
-        private readonly ITagRepo _tagRepo;
+        private readonly ITagService _tagService;
 
-        public IndexModel(ITagRepo tagRepo)
+        public IndexModel(ITagService tagService)
         {
-            _tagRepo = tagRepo;
+            _tagService = tagService;
         }
 
         public IList<Tag> Tag { get;set; } = default!;
 
         public async Task OnGetAsync()
         {
-            Tag = _tagRepo.GetTags();
+            Tag = await _tagService.GetTags();
         }
     }
 }

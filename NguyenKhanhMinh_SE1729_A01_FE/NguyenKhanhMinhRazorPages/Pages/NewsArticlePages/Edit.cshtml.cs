@@ -8,29 +8,27 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using BusinessObjectsLayer.Entity;
 using DAOsLayer;
-using RepositoriesLayer;
 using Microsoft.AspNetCore.SignalR;
 using NguyenKhanhMinhRazorPages.Services;
+using BusinessObjectsLayer.DTO;
 
 namespace NguyenKhanhMinhRazorPages.Pages.NewsArticlePages
 {
     public class EditModel : PageModel
     {
-        private readonly INewsArticleRepo _newsArticleRepo;
-        private readonly ICategoryRepo _categoryRepo;
-        private readonly ISystemAccountRepo _systemAccountRepo;
-        private readonly ITagRepo _tagRepo;
+        private readonly INewsArticleService _newsArticleService;
+        private readonly ICategoryService _categoryService;
+        private readonly ISystemAccountService _systemAccountService;
+        private readonly ITagService _tagService;
         private readonly IHubContext<SignalrServer> _hubContext;
-        private readonly ApiClient _apiClient;
 
-        public EditModel(INewsArticleRepo newsArticleRepo, ICategoryRepo categoryRepo, ISystemAccountRepo systemAccountRepo, ITagRepo tagRepo, IHubContext<SignalrServer> hubContext, ApiClient apiClient)
+        public EditModel(INewsArticleService newsArticleService, ICategoryService categoryService, ISystemAccountService systemAccountService, ITagService tagService, IHubContext<SignalrServer> hubContext)
         {
-            _newsArticleRepo = newsArticleRepo;
-            _categoryRepo = categoryRepo;
-            _systemAccountRepo = systemAccountRepo;
-            _tagRepo = tagRepo;
+            _newsArticleService = newsArticleService;
+            _categoryService = categoryService;
+            _systemAccountService = systemAccountService;
+            _tagService = tagService;
             _hubContext = hubContext;
-            _apiClient = apiClient;
         }
 
         [BindProperty]
@@ -45,16 +43,15 @@ namespace NguyenKhanhMinhRazorPages.Pages.NewsArticlePages
                 return NotFound();
             }
 
-            // Use API to get article
-            NewsArticle = await _apiClient.GetAsync<NewsArticle>($"api/NewsArticles/{id}");
-
-            if (NewsArticle == null)
+            var newsArticle = await _newsArticleService.GetNewsArticleById(id);
+            if (newsArticle == null)
             {
                 return NotFound();
             }
-            SelectedTags = NewsArticle.Tags.Select(t => t.TagId).ToList();
-            ViewData["CategoryId"] = new SelectList(_categoryRepo.GetCategories(), "CategoryId", "CategoryName");
-            ViewData["Tags"] = new MultiSelectList(_tagRepo.GetTags(), "TagId", "TagName");
+            NewsArticle = newsArticle;
+            SelectedTags = newsArticle.Tags.Select(t => t.TagId).ToList();
+            ViewData["CategoryId"] = new SelectList(await _categoryService.GetCategories(), "CategoryId", "CategoryName");
+            ViewData["Tags"] = new MultiSelectList(await _tagService.GetTags(), "TagId", "TagName");
             return Page();
         }
 
@@ -62,17 +59,56 @@ namespace NguyenKhanhMinhRazorPages.Pages.NewsArticlePages
         {
             if (!ModelState.IsValid)
             {
+                ViewData["CategoryId"] = new SelectList(await _categoryService.GetCategories(), "CategoryId", "CategoryName");
+                ViewData["Tags"] = new MultiSelectList(await _tagService.GetTags(), "TagId", "TagName");
                 return Page();
             }
 
-            // Update article via API
-            await _apiClient.PutAsync($"api/NewsArticles/{NewsArticle.NewsArticleId}", NewsArticle);
-            
-            // Signal update to other clients
-            await _hubContext.Clients.All.SendAsync("LoadData");
-            
+            try
+            {
+                // ✅ Avoid reloading NewsArticle
+                var existingArticle = await _newsArticleService.GetNewsArticleById(NewsArticle.NewsArticleId);
+                if (existingArticle == null)
+                {
+                    return NotFound();
+                }
+                var userEmail = HttpContext.Session.GetString("UserEmail");
+                if (string.IsNullOrEmpty(userEmail))
+                {
+                    return RedirectToPage("/Login"); // Redirect to login if no session exists
+                }
+                var currentUser = await _systemAccountService.GetAccountByEmail(userEmail);
+                var dto = new NewsArticleDto
+                {
+                    NewsArticleId = NewsArticle.NewsArticleId,
+                    NewsTitle = NewsArticle.NewsTitle,
+                    Headline = NewsArticle.Headline,
+                    CreatedDate = existingArticle.CreatedDate, // preserve original
+                    NewsContent = NewsArticle.NewsContent,
+                    NewsSource = NewsArticle.NewsSource,
+                    CategoryId = NewsArticle.CategoryId,
+                    NewsStatus = NewsArticle.NewsStatus,
+                    CreatedById = existingArticle.CreatedById, // preserve original
+                    UpdatedById = currentUser.AccountId,
+                    ModifiedDate = DateTime.Now,
+                    TagIds = SelectedTags
+                };
+
+                await _newsArticleService.UpdateNewsArticle(dto);
+                await _hubContext.Clients.All.SendAsync("LoadData");
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (await _newsArticleService.GetNewsArticleById(NewsArticle.NewsArticleId) == null)
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
             return RedirectToPage("./Index");
         }
-
     }
 }

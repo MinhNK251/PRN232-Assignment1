@@ -6,38 +6,30 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using BusinessObjectsLayer.Entity;
-using DAOsLayer;
-using RepositoriesLayer;
 using NguyenKhanhMinhRazorPages.Services;
 
 namespace NguyenKhanhMinhRazorPages.Pages.CategoryPages
 {
     public class DetailsModel : PageModel
     {
-        private readonly ApiClient _apiClient;
+        private readonly ICategoryService _categoryService;
 
-        public DetailsModel(ApiClient apiClient)
+        public DetailsModel(ICategoryService categoryService)
         {
-            _apiClient = apiClient;
+            _categoryService = categoryService;
         }
 
         public Category Category { get; set; } = default!;
 
         public async Task<IActionResult> OnGetAsync(short id)
         {
-            try
-            {
-                Category = await _apiClient.GetAsync<Category>($"api/Categories/{id}");
-                if (Category == null)
-                {
-                    return NotFound();
-                }
-                return Page();
-            }
-            catch (Exception ex)
+            var category = await _categoryService.GetCategoryById(id);
+            if (category == null)
             {
                 return NotFound();
             }
+            Category = category;
+            return Page();
         }
     }
 }

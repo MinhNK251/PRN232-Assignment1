@@ -7,18 +7,17 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using BusinessObjectsLayer.Entity;
-using DAOsLayer;
-using RepositoriesLayer;
+using NguyenKhanhMinhRazorPages.Services;
 
 namespace NguyenKhanhMinhRazorPages.Pages.TagPages
 {
     public class EditModel : PageModel
     {
-        private readonly ITagRepo _tagRepo;
+        private readonly ITagService _tagService;
 
-        public EditModel(ITagRepo tagRepo)
+        public EditModel(ITagService tagService)
         {
-            _tagRepo = tagRepo;
+            _tagService = tagService;
         }
 
         [BindProperty]
@@ -26,7 +25,7 @@ namespace NguyenKhanhMinhRazorPages.Pages.TagPages
 
         public async Task<IActionResult> OnGetAsync(int id)
         {
-            var tag =  _tagRepo.GetTagById(id);
+            var tag =  await _tagService.GetTagById(id);
             if (tag == null)
             {
                 return NotFound();
@@ -44,11 +43,11 @@ namespace NguyenKhanhMinhRazorPages.Pages.TagPages
 
             try
             {
-                _tagRepo.UpdateTag(Tag);
+                await _tagService.UpdateTag(Tag);
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (_tagRepo.GetTagById(Tag.TagId) == null)
+                if (await _tagService.GetTagById(Tag.TagId) == null)
                 {
                     return NotFound();
                 }

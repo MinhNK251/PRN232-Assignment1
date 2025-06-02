@@ -7,22 +7,22 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using BusinessObjectsLayer.Entity;
 using DAOsLayer;
-using RepositoriesLayer;
+using NguyenKhanhMinhRazorPages.Services;
 
 namespace NguyenKhanhMinhRazorPages.Pages.NewsArticlePages
 {
     public class HistoryModel : PageModel
     {
-        private readonly INewsArticleRepo _newsArticleRepo;
-        private readonly ISystemAccountRepo _systemAccountRepo;
+        private readonly INewsArticleService _newsArticleService;
+        private readonly ISystemAccountService _systemAccountService;
 
-        public HistoryModel(INewsArticleRepo newsArticleRepo, ISystemAccountRepo systemAccountRepo)
+        public HistoryModel(INewsArticleService newsArticleService, ISystemAccountService systemAccountService)
         {
-            _newsArticleRepo = newsArticleRepo;
-            _systemAccountRepo = systemAccountRepo;
+            _newsArticleService = newsArticleService;
+            _systemAccountService = systemAccountService;
         }
 
-        public IList<NewsArticle> NewsArticle { get; set; } = default!;
+        public List<NewsArticle> NewsArticle { get; set; } = default!;
 
         public async Task<IActionResult> OnGetAsync()
         {
@@ -31,8 +31,8 @@ namespace NguyenKhanhMinhRazorPages.Pages.NewsArticlePages
             {
                 return RedirectToPage("/NotPermission");
             }
-            var currentAccount = _systemAccountRepo.GetAccountByEmail(userEmail);
-            NewsArticle = _newsArticleRepo.GetNewsArticlesByCreatedBy(currentAccount.AccountId);
+            var currentAccount = await _systemAccountService.GetAccountByEmail(userEmail);
+            NewsArticle = await _newsArticleService.GetNewsArticlesByCreatedBy(currentAccount.AccountId);
             return Page();
         }
     }

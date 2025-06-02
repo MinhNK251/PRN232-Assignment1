@@ -8,18 +8,19 @@ using Microsoft.EntityFrameworkCore;
 using BusinessObjectsLayer.Entity;
 using DAOsLayer;
 using RepositoriesLayer;
+using NguyenKhanhMinhRazorPages.Services;
 
 namespace NguyenKhanhMinhRazorPages.Pages.SystemAccountPages
 {
     public class DeleteModel : PageModel
     {
-        private readonly ISystemAccountRepo _systemAccountRepo;
-        private readonly INewsArticleRepo _newsArticleRepo;
+        private readonly ISystemAccountService _systemAccountService;
+        private readonly INewsArticleService _newsArticleService;
 
-        public DeleteModel(ISystemAccountRepo systemAccountRepo, INewsArticleRepo newsArticleRepo)
+        public DeleteModel(ISystemAccountService systemAccountService, INewsArticleService newsArticleService)
         {
-            _systemAccountRepo = systemAccountRepo;
-            _newsArticleRepo = newsArticleRepo;
+            _systemAccountService = systemAccountService;
+            _newsArticleService = newsArticleService;
         }
 
         [BindProperty]
@@ -27,7 +28,7 @@ namespace NguyenKhanhMinhRazorPages.Pages.SystemAccountPages
 
         public async Task<IActionResult> OnGetAsync(short id)
         {
-            var systemaccount = _systemAccountRepo.GetAccountById(id);
+            var systemaccount = await _systemAccountService.GetAccountById(id);
             if (systemaccount == null)
             {
                 return NotFound();
@@ -38,16 +39,16 @@ namespace NguyenKhanhMinhRazorPages.Pages.SystemAccountPages
 
         public async Task<IActionResult> OnPostAsync(short id)
         {
-            var systemaccount = _systemAccountRepo.GetAccountById(id);
+            var systemaccount = await _systemAccountService.GetAccountById(id);
             if (systemaccount != null)
             {
                 SystemAccount = systemaccount;
                 foreach (var article in systemaccount.NewsArticles)
                 {
-                    _newsArticleRepo.RemoveTagsByArticleId(article.NewsArticleId);
-                    _newsArticleRepo.RemoveNewsArticle(article.NewsArticleId);
+                    await _newsArticleService.RemoveTagsByArticleId(article.NewsArticleId);
+                    await _newsArticleService.RemoveNewsArticle(article.NewsArticleId);
                 }
-                _systemAccountRepo.RemoveAccount(id);
+                await _systemAccountService.RemoveAccount(id);
             }
 
             return RedirectToPage("./Index");

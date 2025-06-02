@@ -9,16 +9,17 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using BusinessObjectsLayer.Entity;
 using DAOsLayer;
 using RepositoriesLayer;
+using NguyenKhanhMinhRazorPages.Services;
 
 namespace NguyenKhanhMinhRazorPages.Pages.SystemAccountPages
 {
     public class CreateModel : PageModel
     {
-        private readonly ISystemAccountRepo _systemAccountRepo;
+        private readonly ISystemAccountService _systemAccountService;
 
-        public CreateModel(ISystemAccountRepo systemAccountRepo)
+        public CreateModel(ISystemAccountService systemAccountService)
         {
-            _systemAccountRepo = systemAccountRepo;
+            _systemAccountService = systemAccountService;
         }
 
         public IActionResult OnGet()
@@ -40,17 +41,17 @@ namespace NguyenKhanhMinhRazorPages.Pages.SystemAccountPages
                 ModelState.AddModelError("SystemAccount.AccountEmail", "Invalid email format.");
                 return Page();
             }
-            if (_systemAccountRepo.GetAccountById(SystemAccount.AccountId) != null)
+            if (await _systemAccountService.GetAccountById(SystemAccount.AccountId) != null)
             {
                 ModelState.AddModelError("SystemAccount.AccountId", "This Account ID already exists. Please enter a unique ID.");
                 return Page();
             }
-            if (_systemAccountRepo.GetAccountByEmail(SystemAccount.AccountEmail) != null)
+            if (await _systemAccountService.GetAccountByEmail(SystemAccount.AccountEmail) != null)
             {
                 ModelState.AddModelError("SystemAccount.AccountEmail", "This Email already exists. Please enter another Email.");
                 return Page();
             }
-            _systemAccountRepo.AddAccount(SystemAccount);
+            await _systemAccountService.AddAccount(SystemAccount);
 
             return RedirectToPage("./Index");
         }

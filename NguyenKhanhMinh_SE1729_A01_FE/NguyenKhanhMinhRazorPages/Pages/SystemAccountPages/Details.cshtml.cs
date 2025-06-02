@@ -8,23 +8,24 @@ using Microsoft.EntityFrameworkCore;
 using BusinessObjectsLayer.Entity;
 using DAOsLayer;
 using RepositoriesLayer;
+using NguyenKhanhMinhRazorPages.Services;
 
 namespace NguyenKhanhMinhRazorPages.Pages.SystemAccountPages
 {
     public class DetailsModel : PageModel
     {
-        private readonly ISystemAccountRepo _systemAccountRepo;
+        private readonly ISystemAccountService _systemAccountService;
 
-        public DetailsModel(ISystemAccountRepo systemAccountRepo)
+        public DetailsModel(ISystemAccountService systemAccountService)
         {
-            _systemAccountRepo = systemAccountRepo;
+            _systemAccountService = systemAccountService;
         }
 
         public SystemAccount SystemAccount { get; set; } = default!;
 
         public async Task<IActionResult> OnGetAsync(short id)
         {
-            var systemaccount = _systemAccountRepo.GetAccountById(id);
+            var systemaccount = await _systemAccountService.GetAccountById(id);
             if (systemaccount == null)
             {
                 return NotFound();
