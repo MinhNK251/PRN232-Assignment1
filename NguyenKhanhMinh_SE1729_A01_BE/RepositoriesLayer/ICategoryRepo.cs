@@ -10,7 +10,7 @@ namespace RepositoriesLayer
         List<Category> GetCategories();
         List<Category> GetActiveCategories();
         void AddCategory(Category category);
-        void UpdateCategory(short categoryId, Category category);
+        void UpdateCategory(Category category);
         void RemoveCategory(short categoryId);
     }
 }
