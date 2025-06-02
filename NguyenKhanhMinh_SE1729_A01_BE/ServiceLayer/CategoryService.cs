@@ -55,7 +55,8 @@ namespace ServiceLayer
             if (existing == null)
                 throw new InvalidOperationException("Category not found.");
 
-            _repo.UpdateCategory(categoryId, existing);
+            // Pass the updated category to the repository
+            _repo.UpdateCategory(categoryId, category);
         }
     }
 }

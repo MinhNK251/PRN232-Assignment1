@@ -37,6 +37,20 @@ namespace NewsManagementWebAPI.Controllers
             return Ok(account);
         }
 
+        // GET: api/SystemAccounts/byEmail/{email}
+        [HttpGet("byEmail/{email}")]
+        public ActionResult<SystemAccount> GetSystemAccountByEmail(string email)
+        {
+            var account = _context.GetAccountByEmail(email);
+            
+            if (account == null)
+            {
+                return NotFound();
+            }
+            
+            return Ok(account);
+        }
+
         // PUT: api/SystemAccounts/5
         [HttpPut("{id}")]
         public IActionResult PutSystemAccount(short id, SystemAccount systemAccount)
